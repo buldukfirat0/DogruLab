@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hücre Maketi | DoğruLab</title>
+  <link rel="stylesheet" href="../assets/dogrulab.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    /* ── Keşfet (Genişleyen Kartlar) ── */
+    .kesfet { background:var(--bg3); border:1px solid var(--border2); border-radius:10px; margin-bottom:8px; cursor:pointer; overflow:hidden; transition:border-color 0.3s; }
+    .kesfet:hover { border-color:var(--border); }
+    .kesfet-baslik { padding:12px 16px; display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; font-weight:600; color:var(--h2); }
+    .kesfet-ok { transition:transform 0.3s; color:var(--text2); font-size:0.75rem; }
+    .kesfet.acik .kesfet-ok { transform:rotate(180deg); }
+    .kesfet-icerik { max-height:0; overflow:hidden; transition:max-height 0.4s ease; padding:0 16px; font-size:0.82rem; color:var(--text2); line-height:1.8; }
+    .kesfet.acik .kesfet-icerik { max-height:500px; padding:0 16px 14px; }
+    .kesfet-icerik strong { color:var(--teal); }
+
+    /* ── Hücre Modeli ── */
+    .hucre-toggle { display:flex; gap:10px; margin-bottom:16px; }
+    .hucre-toggle button { flex:1; }
+    .hucre-svg-wrap { background:var(--bg); border-radius:12px; padding:16px; text-align:center; border:1px solid var(--border); }
+    .hucre-svg-wrap svg { max-width:100%; height:auto; display:block; margin:0 auto; }
+
+    .organelle-info {
+      background:var(--bg2);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:18px 20px;
+      margin-top:16px;
+      min-height:80px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      transition:border-color 0.3s;
+    }
+    .organelle-info.aktif { border-color:var(--cyan); }
+    .organelle-info .org-name { font-size:1rem; font-weight:700; color:var(--teal); }
+    .organelle-info .org-analoji { font-size:0.82rem; color:var(--orange); font-weight:600; margin-bottom:2px; }
+    .organelle-info .org-desc { font-size:0.82rem; color:var(--text2); line-height:1.7; }
+    .organelle-info .org-funfact { font-size:0.78rem; color:var(--purple); margin-top:6px; font-style:italic; }
+    .organelle-hint { font-size:0.75rem; color:var(--text2); margin-top:10px; text-align:center; opacity:0.6; }
+
+    /* ── SVG Organeller ── */
+    .organelle-shape { cursor:pointer; transition:filter 0.2s, opacity 0.2s; }
+    .organelle-shape:hover { filter:brightness(1.4) drop-shadow(0 0 6px rgba(93,173,226,0.5)); }
+
+    /* ── Karşılaştırma ── */
+    .karsilastirma-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+    .karsilastirma-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:16px; }
+    .karsilastirma-card h4 { font-size:0.9rem; color:var(--h2); margin-bottom:10px; }
+    .karsilastirma-card ul { list-style:none; font-size:0.82rem; }
+    .karsilastirma-card ul li { padding:4px 0; color:var(--text2); display:flex; align-items:center; gap:6px; }
+    .karsilastirma-card ul li .var { color:var(--green); font-weight:600; }
+    .karsilastirma-card ul li .yok { color:var(--red); font-weight:600; opacity:0.7; }
+
+    /* ── Deney Adımları ── */
+    .adim-basit { display:flex; gap:14px; align-items:flex-start; padding:14px 16px; background:var(--bg3); border:1px solid var(--border2); border-radius:10px; margin-bottom:8px; }
+    .adim-basit .adim-no { min-width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg, var(--cyan), var(--teal)); color:#070b16; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .adim-basit .adim-text { font-size:0.85rem; line-height:1.6; color:var(--text); }
+    .adim-basit .adim-text strong { color:var(--h3); }
+
+    /* ── Gözlem Defteri ── */
+    .gozlem-alan { margin-bottom:14px; }
+    .gozlem-alan label { font-size:0.82rem; color:var(--h3); font-weight:600; display:block; margin-bottom:6px; }
+
+    @media (max-width:600px) {
+      .karsilastirma-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="../index.html">⚗️ DoğruLab</a>
+  <div class="deney-badge">Biyoloji · 9. Sınıf</div>
+</header>
+
+<main>
+
+  <!-- ═══ HERO ═══ -->
+  <div class="hero">
+    <span class="hero-emoji">🦠</span>
+    <h1>Hücre Maketi</h1>
+    <p>Her canlı hücrelerden oluşur — peki bir hücrenin içinde neler var? Organellere tıkla, keşfet, kendi maketini yap!</p>
+    <div class="meta-row">
+      <span class="meta-chip sinif">Biyoloji · 9. Sınıf</span>
+      <span class="meta-chip sure">⏱ 35 dk</span>
+      <span class="meta-chip zorluk">✦ Orta</span>
+    </div>
+  </div>
+
+  <!-- ═══ BÖLÜM 1: Hücre Nedir? ═══ -->
+  <section>
+    <div class="section-title"><span>🔬</span> Hücre Nedir?</div>
+    <div class="card">
+      <p style="margin-bottom:10px;"><strong style="color:var(--teal)">Hücre</strong>, canlıların en küçük yapı ve işlev birimidir.</p>
+      <p style="margin-bottom:10px;">Gözle göremeyeceğin kadar küçük — ama içinde bir fabrika kadar karmaşık bir sistem çalışıyor.</p>
+      <div class="note-box" style="margin-top:14px;">
+        <strong>🏙️ Hücreyi bir şehir gibi düşün</strong>
+        Belediye binası, enerji santrali, fabrikalar, yollar, güvenlik duvarları... Her organelin bir görevi var. Tıpkı bir şehirdeki kurumlar gibi, organeller birlikte çalışarak hücrenin yaşamasını sağlar.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ BÖLÜM 2: İnteraktif Hücre Modeli ═══ -->
+  <section>
+    <div class="section-title"><span>🧫</span> İnteraktif Hücre Modeli</div>
+    <div class="sim-container">
+      <div style="padding:16px 20px;">
+
+        <div class="hucre-toggle">
+          <button class="btn btn-primary" id="btnHayvan" onclick="hucreGoster('hayvan')">🐾 Hayvan Hücresi</button>
+          <button class="btn btn-secondary" id="btnBitki" onclick="hucreGoster('bitki')">🌿 Bitki Hücresi</button>
+        </div>
+
+        <div class="hucre-svg-wrap">
+
+          <!-- ══ HAYVAN HÜCRESİ SVG ══ -->
+          <svg id="svgHayvan" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:420px;">
+            <!-- Sitoplazma dolgusu -->
+            <ellipse cx="250" cy="200" rx="225" ry="180" fill="rgba(255,248,200,0.04)"/>
+
+            <!-- Hücre Zarı -->
+            <ellipse class="organelle-shape" cx="250" cy="200" rx="225" ry="180"
+              fill="none" stroke="#5dade2" stroke-width="3.5"
+              onclick="organelBilgi('hucrezari')"/>
+            <text x="250" y="392" text-anchor="middle" fill="#5dade2" font-size="10" font-family="Poppins,sans-serif" font-weight="600" opacity="0.8">Hücre Zarı</text>
+
+            <!-- Sitoplazma etiketi -->
+            <text class="organelle-shape" x="410" y="340" text-anchor="middle" fill="rgba(255,248,200,0.5)" font-size="9" font-family="Poppins,sans-serif" onclick="organelBilgi('sitoplazma')" style="cursor:pointer">Sitoplazma</text>
+
+            <!-- Çekirdek -->
+            <g class="organelle-shape" onclick="organelBilgi('cekirdek')">
+              <circle cx="250" cy="200" r="60" fill="rgba(72,100,210,0.2)" stroke="#4864d2" stroke-width="3"/>
+              <circle cx="250" cy="200" r="22" fill="rgba(72,100,210,0.45)" stroke="#7090ff" stroke-width="2"/>
+              <text x="250" y="178" text-anchor="middle" fill="#a0b8ff" font-size="8" font-family="Poppins,sans-serif" opacity="0.7">Çekirdekçik</text>
+              <text x="250" y="244" text-anchor="middle" fill="#a0b8ff" font-size="10" font-family="Poppins,sans-serif" font-weight="700">Çekirdek</text>
+            </g>
+
+            <!-- Mitokondri 1 -->
+            <g class="organelle-shape" onclick="organelBilgi('mitokondri')">
+              <ellipse cx="390" cy="150" rx="38" ry="18" fill="rgba(255,120,50,0.3)" stroke="#ff7832" stroke-width="2" transform="rotate(-15,390,150)"/>
+              <line x1="358" y1="146" x2="422" y2="146" stroke="#ff7832" stroke-width="1.2" opacity="0.4" transform="rotate(-15,390,150)"/>
+              <line x1="362" y1="154" x2="418" y2="154" stroke="#ff7832" stroke-width="1" opacity="0.3" transform="rotate(-15,390,150)"/>
+              <text x="390" y="178" text-anchor="middle" fill="#ffa657" font-size="9" font-family="Poppins,sans-serif">Mitokondri</text>
+            </g>
+
+            <!-- Mitokondri 2 -->
+            <g class="organelle-shape" onclick="organelBilgi('mitokondri')">
+              <ellipse cx="380" cy="270" rx="30" ry="14" fill="rgba(255,120,50,0.22)" stroke="#ff7832" stroke-width="1.5" transform="rotate(20,380,270)"/>
+              <line x1="354" y1="268" x2="406" y2="268" stroke="#ff7832" stroke-width="0.8" opacity="0.3" transform="rotate(20,380,270)"/>
+            </g>
+
+            <!-- Endoplazmik Retikulum -->
+            <g class="organelle-shape" onclick="organelBilgi('er')">
+              <path d="M 155 110 Q 185 90 215 110 Q 245 130 275 110 Q 305 90 340 110" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M 155 126 Q 185 106 215 126 Q 245 146 275 126 Q 305 106 340 126" fill="none" stroke="#c084fc" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+              <path d="M 165 140 Q 190 125 215 140 Q 240 155 265 140" fill="none" stroke="#c084fc" stroke-width="1.2" stroke-linecap="round" opacity="0.3"/>
+              <!-- Ribozomlar ER üzerinde -->
+              <circle cx="170" cy="108" r="3" fill="#f472b6" opacity="0.7"/>
+              <circle cx="200" cy="118" r="3" fill="#f472b6" opacity="0.7"/>
+              <circle cx="230" cy="108" r="3" fill="#f472b6" opacity="0.7"/>
+              <circle cx="260" cy="118" r="3" fill="#f472b6" opacity="0.7"/>
+              <circle cx="290" cy="108" r="3" fill="#f472b6" opacity="0.7"/>
+              <text x="250" y="158" text-anchor="middle" fill="#c084fc" font-size="9" font-family="Poppins,sans-serif">Endoplazmik Retikulum</text>
+            </g>
+
+            <!-- Golgi Aygıtı -->
+            <g class="organelle-shape" onclick="organelBilgi('golgi')">
+              <path d="M 95 230 Q 130 222 130 232 Q 130 242 95 236 Z" fill="rgba(250,204,21,0.35)" stroke="#facc15" stroke-width="1.5"/>
+              <path d="M 93 238 Q 132 228 132 238 Q 132 248 93 244 Z" fill="rgba(250,204,21,0.28)" stroke="#facc15" stroke-width="1.5"/>
+              <path d="M 91 246 Q 134 236 134 246 Q 134 256 91 252 Z" fill="rgba(250,204,21,0.2)" stroke="#facc15" stroke-width="1.5"/>
+              <circle cx="138" cy="228" r="5" fill="rgba(250,204,21,0.3)" stroke="#facc15" stroke-width="1"/>
+              <circle cx="142" cy="240" r="4" fill="rgba(250,204,21,0.25)" stroke="#facc15" stroke-width="0.8"/>
+              <text x="115" y="268" text-anchor="middle" fill="#facc15" font-size="9" font-family="Poppins,sans-serif">Golgi Aygıtı</text>
+            </g>
+
+            <!-- Ribozomlar (serbest) -->
+            <g class="organelle-shape" onclick="organelBilgi('ribozom')">
+              <circle cx="340" cy="320" r="5" fill="#f472b6" stroke="#e0529c" stroke-width="1"/>
+              <circle cx="356" cy="312" r="5" fill="#f472b6" stroke="#e0529c" stroke-width="1"/>
+              <circle cx="370" cy="322" r="4.5" fill="#f472b6" stroke="#e0529c" stroke-width="1"/>
+              <circle cx="352" cy="330" r="4" fill="#f472b6" stroke="#e0529c" stroke-width="0.8"/>
+              <circle cx="364" cy="336" r="3.5" fill="#f472b6" stroke="#e0529c" stroke-width="0.8"/>
+              <text x="355" y="350" text-anchor="middle" fill="#f472b6" font-size="9" font-family="Poppins,sans-serif">Ribozom</text>
+            </g>
+
+            <!-- Lizozom -->
+            <g class="organelle-shape" onclick="organelBilgi('lizozom')">
+              <circle cx="155" cy="310" r="20" fill="rgba(248,81,73,0.2)" stroke="#f85149" stroke-width="2"/>
+              <circle cx="148" cy="304" r="4" fill="rgba(248,81,73,0.4)" stroke="none"/>
+              <circle cx="162" cy="314" r="3" fill="rgba(248,81,73,0.35)" stroke="none"/>
+              <circle cx="152" cy="318" r="3.5" fill="rgba(248,81,73,0.3)" stroke="none"/>
+              <text x="155" y="340" text-anchor="middle" fill="#f85149" font-size="9" font-family="Poppins,sans-serif">Lizozom</text>
+            </g>
+
+            <!-- Koful (küçük) -->
+            <g class="organelle-shape" onclick="organelBilgi('koful-h')">
+              <ellipse cx="120" cy="145" rx="22" ry="16" fill="rgba(100,180,255,0.15)" stroke="#64b4ff" stroke-width="1.5"/>
+              <ellipse cx="100" cy="180" rx="14" ry="10" fill="rgba(100,180,255,0.1)" stroke="#64b4ff" stroke-width="1"/>
+              <text x="115" y="168" text-anchor="middle" fill="#64b4ff" font-size="8" font-family="Poppins,sans-serif">Koful</text>
+            </g>
+          </svg>
+
+          <!-- ══ BİTKİ HÜCRESİ SVG ══ -->
+          <svg id="svgBitki" viewBox="0 0 500 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:440px;display:none;">
+            <!-- Hücre Duvarı (dış) -->
+            <rect class="organelle-shape" x="10" y="10" width="480" height="400" rx="12"
+              fill="rgba(56,160,80,0.06)" stroke="#38a050" stroke-width="6"
+              onclick="organelBilgi('hucreduvari')"/>
+
+            <!-- Hücre Zarı (iç) -->
+            <rect class="organelle-shape" x="24" y="24" width="452" height="372" rx="8"
+              fill="rgba(56,160,80,0.03)" stroke="#5dade2" stroke-width="2" stroke-dasharray="6,4"
+              onclick="organelBilgi('hucrezari')"/>
+
+            <!-- Sitoplazma etiketi -->
+            <text class="organelle-shape" x="440" y="380" text-anchor="end" fill="rgba(255,248,200,0.45)" font-size="9" font-family="Poppins,sans-serif" onclick="organelBilgi('sitoplazma')" style="cursor:pointer">Sitoplazma</text>
+
+            <!-- Büyük Koful (merkezi) -->
+            <g class="organelle-shape" onclick="organelBilgi('koful-b')">
+              <rect x="140" y="60" width="220" height="140" rx="16" fill="rgba(100,180,255,0.12)" stroke="#64b4ff" stroke-width="2"/>
+              <text x="250" y="135" text-anchor="middle" fill="#64b4ff" font-size="11" font-family="Poppins,sans-serif" font-weight="600">Merkezi Koful</text>
+            </g>
+
+            <!-- Çekirdek -->
+            <g class="organelle-shape" onclick="organelBilgi('cekirdek')">
+              <circle cx="250" cy="280" r="52" fill="rgba(72,100,210,0.2)" stroke="#4864d2" stroke-width="3"/>
+              <circle cx="250" cy="280" r="18" fill="rgba(72,100,210,0.45)" stroke="#7090ff" stroke-width="2"/>
+              <text x="250" y="262" text-anchor="middle" fill="#a0b8ff" font-size="7" font-family="Poppins,sans-serif" opacity="0.7">Çekirdekçik</text>
+              <text x="250" y="320" text-anchor="middle" fill="#a0b8ff" font-size="10" font-family="Poppins,sans-serif" font-weight="700">Çekirdek</text>
+            </g>
+
+            <!-- Kloroplast 1 -->
+            <g class="organelle-shape" onclick="organelBilgi('kloroplast')">
+              <ellipse cx="75" cy="110" rx="38" ry="18" fill="rgba(56,200,80,0.3)" stroke="#38c850" stroke-width="2"/>
+              <ellipse cx="75" cy="110" rx="18" ry="8" fill="rgba(56,200,80,0.45)" stroke="#38c850" stroke-width="1" stroke-dasharray="3,2"/>
+              <text x="75" y="136" text-anchor="middle" fill="#38c850" font-size="9" font-family="Poppins,sans-serif">Kloroplast</text>
+            </g>
+
+            <!-- Kloroplast 2 -->
+            <g class="organelle-shape" onclick="organelBilgi('kloroplast')">
+              <ellipse cx="430" cy="100" rx="34" ry="16" fill="rgba(56,200,80,0.25)" stroke="#38c850" stroke-width="1.8" transform="rotate(15,430,100)"/>
+              <ellipse cx="430" cy="100" rx="16" ry="7" fill="rgba(56,200,80,0.35)" stroke="#38c850" stroke-width="0.8" stroke-dasharray="3,2" transform="rotate(15,430,100)"/>
+            </g>
+
+            <!-- Kloroplast 3 -->
+            <g class="organelle-shape" onclick="organelBilgi('kloroplast')">
+              <ellipse cx="80" cy="310" rx="30" ry="14" fill="rgba(56,200,80,0.22)" stroke="#38c850" stroke-width="1.5" transform="rotate(-10,80,310)"/>
+            </g>
+
+            <!-- Mitokondri -->
+            <g class="organelle-shape" onclick="organelBilgi('mitokondri')">
+              <ellipse cx="420" cy="280" rx="32" ry="15" fill="rgba(255,120,50,0.28)" stroke="#ff7832" stroke-width="2" transform="rotate(10,420,280)"/>
+              <line x1="392" y1="276" x2="448" y2="276" stroke="#ff7832" stroke-width="1" opacity="0.4" transform="rotate(10,420,280)"/>
+              <line x1="396" y1="284" x2="444" y2="284" stroke="#ff7832" stroke-width="0.8" opacity="0.3" transform="rotate(10,420,280)"/>
+              <text x="420" y="305" text-anchor="middle" fill="#ffa657" font-size="9" font-family="Poppins,sans-serif">Mitokondri</text>
+            </g>
+
+            <!-- Mitokondri 2 -->
+            <g class="organelle-shape" onclick="organelBilgi('mitokondri')">
+              <ellipse cx="70" cy="210" rx="26" ry="12" fill="rgba(255,120,50,0.2)" stroke="#ff7832" stroke-width="1.5" transform="rotate(-20,70,210)"/>
+              <line x1="48" y1="207" x2="92" y2="207" stroke="#ff7832" stroke-width="0.8" opacity="0.3" transform="rotate(-20,70,210)"/>
+            </g>
+
+            <!-- Golgi Aygıtı -->
+            <g class="organelle-shape" onclick="organelBilgi('golgi')">
+              <path d="M 390 175 Q 425 168 425 178 Q 425 188 390 182 Z" fill="rgba(250,204,21,0.35)" stroke="#facc15" stroke-width="1.5"/>
+              <path d="M 388 185 Q 427 176 427 186 Q 427 196 388 192 Z" fill="rgba(250,204,21,0.28)" stroke="#facc15" stroke-width="1.5"/>
+              <path d="M 386 195 Q 429 186 429 196 Q 429 206 386 202 Z" fill="rgba(250,204,21,0.2)" stroke="#facc15" stroke-width="1.5"/>
+              <text x="408" y="218" text-anchor="middle" fill="#facc15" font-size="9" font-family="Poppins,sans-serif">Golgi Aygıtı</text>
+            </g>
+
+            <!-- Endoplazmik Retikulum -->
+            <g class="organelle-shape" onclick="organelBilgi('er')">
+              <path d="M 320 340 Q 350 325 380 340 Q 410 355 440 340" fill="none" stroke="#c084fc" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M 325 354 Q 355 339 385 354 Q 415 369 435 354" fill="none" stroke="#c084fc" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+              <circle cx="340" cy="338" r="3" fill="#f472b6" opacity="0.6"/>
+              <circle cx="370" cy="348" r="3" fill="#f472b6" opacity="0.6"/>
+              <circle cx="400" cy="338" r="3" fill="#f472b6" opacity="0.6"/>
+              <text x="380" y="378" text-anchor="middle" fill="#c084fc" font-size="9" font-family="Poppins,sans-serif">E. Retikulum</text>
+            </g>
+
+            <!-- Ribozomlar (serbest) -->
+            <g class="organelle-shape" onclick="organelBilgi('ribozom')">
+              <circle cx="145" cy="360" r="5" fill="#f472b6" stroke="#e0529c" stroke-width="1"/>
+              <circle cx="160" cy="352" r="5" fill="#f472b6" stroke="#e0529c" stroke-width="1"/>
+              <circle cx="172" cy="362" r="4" fill="#f472b6" stroke="#e0529c" stroke-width="0.8"/>
+              <circle cx="155" cy="370" r="3.5" fill="#f472b6" stroke="#e0529c" stroke-width="0.8"/>
+              <text x="157" y="386" text-anchor="middle" fill="#f472b6" font-size="9" font-family="Poppins,sans-serif">Ribozom</text>
+            </g>
+
+            <!-- Hücre duvarı etiketi -->
+            <text x="250" y="404" text-anchor="middle" fill="#38a050" font-size="10" font-family="Poppins,sans-serif" font-weight="600" opacity="0.8">Hücre Duvarı (Selüloz)</text>
+            <!-- Hücre zarı etiketi -->
+            <text x="250" y="43" text-anchor="middle" fill="#5dade2" font-size="8" font-family="Poppins,sans-serif" opacity="0.6">Hücre Zarı</text>
+          </svg>
+
+        </div>
+
+        <p class="organelle-hint">Organellere tıklayarak görevlerini öğren ↑</p>
+
+        <!-- Organel bilgi paneli -->
+        <div class="organelle-info" id="organelPanel">
+          <div class="org-name" id="organelAdi">Bir organel seç</div>
+          <div class="org-analoji" id="organelAnaloji" style="display:none;"></div>
+          <div class="org-desc" id="organelAciklama">Yukarıdaki hücre modelinde bir organele tıklayarak görevini öğren.</div>
+          <div class="org-funfact" id="organelFunfact" style="display:none;"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ BÖLÜM 3: Karşılaştırma ═══ -->
+  <section>
+    <div class="section-title"><span>⚖️</span> Hayvan vs Bitki Hücresi</div>
+
+    <div class="karsilastirma-grid">
+      <div class="karsilastirma-card">
+        <h4>🐾 Hayvan Hücresi</h4>
+        <ul>
+          <li>Şekil: <strong style="color:var(--text)">Yuvarlak / Oval</strong></li>
+          <li>Hücre Duvarı: <span class="yok">✕ Yok</span></li>
+          <li>Kloroplast: <span class="yok">✕ Yok</span></li>
+          <li>Koful: <strong style="color:var(--text)">Küçük, çok sayıda</strong></li>
+          <li>Lizozom: <span class="var">✓ Var</span></li>
+          <li>Enerji: <strong style="color:var(--text)">Sadece mitokondri</strong></li>
+        </ul>
+      </div>
+      <div class="karsilastirma-card">
+        <h4>🌿 Bitki Hücresi</h4>
+        <ul>
+          <li>Şekil: <strong style="color:var(--text)">Dikdörtgen</strong></li>
+          <li>Hücre Duvarı: <span class="var">✓ Var (Selüloz)</span></li>
+          <li>Kloroplast: <span class="var">✓ Var</span></li>
+          <li>Koful: <strong style="color:var(--text)">Tek, çok büyük</strong></li>
+          <li>Lizozom: <span class="yok">✕ Yok (genellikle)</span></li>
+          <li>Enerji: <strong style="color:var(--text)">Mitokondri + Kloroplast</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Keşfet kartları -->
+    <div class="kesfet" onclick="kesfetToggle(this)">
+      <div class="kesfet-baslik">🧱 Hücre duvarı neden sadece bitkilerde var?<span class="kesfet-ok">▼</span></div>
+      <div class="kesfet-icerik">
+        Bitki hücreleri hareket edemez, bu yüzden kendilerini korumak için sert bir dış tabakaya ihtiyaç duyar. <strong>Selülozdan</strong> yapılan hücre duvarı, bitkiye yapısal destek ve şekil verir. Hayvan hücreleri ise esnek hücre zarı sayesinde şekillerini değiştirebilir — bu da hareket ve farklılaşma için önemlidir.
+      </div>
+    </div>
+
+    <div class="kesfet" onclick="kesfetToggle(this)">
+      <div class="kesfet-baslik">🌿 Kloroplast ne işe yarar?<span class="kesfet-ok">▼</span></div>
+      <div class="kesfet-icerik">
+        Kloroplast, bitkinin <strong>güneş enerjisini kimyasal enerjiye</strong> çeviren organeldir. İçindeki <strong>klorofil</strong> pigmenti yeşil ışığı yansıtır — bu yüzden bitkiler yeşildir! Fotosentez sayesinde bitkiler karbondioksit ve sudan besin (glikoz) ve oksijen üretir. Hayvanlar fotosentez yapamaz, bu yüzden kloroplasta sahip değildir.
+      </div>
+    </div>
+
+    <div class="kesfet" onclick="kesfetToggle(this)">
+      <div class="kesfet-baslik">💧 Neden bitki hücresinde büyük koful var?<span class="kesfet-ok">▼</span></div>
+      <div class="kesfet-icerik">
+        Bitki hücresindeki <strong>merkezi koful</strong>, hücre hacminin %90'ına kadar yer kaplayabilir! Su, mineraller ve atık maddeleri depolar. Koful şiştiğinde hücre zarını hücre duvarına bastırır — bu da bitkiye <strong>turgor basıncı</strong> sağlar ve bitkinin dik durmasına yardımcı olur. Solan bir bitkinin yaprakları düşer çünkü kofullar su kaybetmiştir.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ BÖLÜM 4: Deney Malzemeleri ═══ -->
+  <section>
+    <div class="section-title"><span>🧰</span> Deney Malzemeleri</div>
+
+    <div class="kesfet" onclick="kesfetToggle(this)">
+      <div class="kesfet-baslik">🫧 Jelatin veya silikon (sitoplazma)<span class="kesfet-ok">▼</span></div>
+      <div class="kesfet-icerik">
+        Hücrenin iç ortamını (sitoplazmayı) temsil eder. Şeffaf jelatin en iyi seçenektir çünkü organellerin görünmesini sağlar. <strong>Hazır jelatin</strong> eritilip kaba dökülür, biraz soğuduktan sonra organeller yerleştirilir.
+      </div>
+    </div>
+
+    <div class="kesfet" onclick="kesfetToggle(this)">
+      <div class="kesfet-baslik">🛡️ Plastik poşet veya streç film (hücre zarı)<span class="kesfet-ok">▼</span></div>
+      <div class="kesfet-icerik">
+        Hücre zarının ince ve esnek yapısını temsil eder. <strong>Şeffaf streç film</strong> kabın iç yüzeyine serilir. Gerçek hücre zarı da çift katmanlı ince bir tabakadır.
+      </div>
+    </div>
+
+    <div class="kesfet" onclick="kesfetToggle(this)">
+      <div class="kesfet-baslik">🔴 Küçük toplar ve boncuklar (organeller)<span class="kesfet-ok">▼</span></div>
+      <div class="kesfet-icerik">
+        Farklı boyut ve renklerde boncuklar her organeli temsil eder. <strong>Büyük top</strong> → çekirdek, <strong>küçük kırmızı boncuklar</strong> → lizozom, <strong>turuncu uzun parçalar</strong> → mitokondri. Renk kodlaması öğrenmeyi kolaylaştırır.
+      </div>
+    </div>
+
+    <div class="kesfet" onclick="kesfetToggle(this)">
+      <div class="kesfet-baslik">📦 Kağıt veya karton (hücre duvarı — bitki için)<span class="kesfet-ok">▼</span></div>
+      <div class="kesfet-icerik">
+        Bitki hücresi modeli yapıyorsan kabın dış yüzeyine <strong>kalın karton</strong> sararak hücre duvarını temsil edebilirsin. Selülozun sert yapısını gösterir.
+      </div>
+    </div>
+
+    <div class="kesfet" onclick="kesfetToggle(this)">
+      <div class="kesfet-baslik">🎨 Renkli oyun hamuru (her organel için farklı renk)<span class="kesfet-ok">▼</span></div>
+      <div class="kesfet-icerik">
+        En kolay ve eğlenceli yöntem! Her organel için farklı renk hamur kullan: <strong>mavi</strong> → çekirdek, <strong>turuncu</strong> → mitokondri, <strong>yeşil</strong> → kloroplast, <strong>sarı</strong> → Golgi, <strong>mor</strong> → ER, <strong>pembe</strong> → ribozom.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ BÖLÜM 5: Deney Adımları ═══ -->
+  <section>
+    <div class="section-title"><span>🧪</span> Deney Adımları</div>
+
+    <div class="adim-basit">
+      <div class="adim-no">1</div>
+      <div class="adim-text">Plastik kabın içine <strong>jelatin veya silikon</strong> dök — bu senin sitoplazman olacak. Yarı katılaşmasını bekle.</div>
+    </div>
+
+    <div class="adim-basit">
+      <div class="adim-no">2</div>
+      <div class="adim-text">Büyük bir boncuk veya top ile <strong>çekirdeği</strong> temsil et — kabın ortasına yerleştir. Çekirdek hücrenin yönetim merkezidir.</div>
+    </div>
+
+    <div class="adim-basit">
+      <div class="adim-no">3</div>
+      <div class="adim-text">Farklı renk ve şekillerde küçük objeler ile <strong>organelleri yerleştir</strong>: turuncu parçalar (mitokondri), sarı şeritler (Golgi), mor iplikler (ER).</div>
+    </div>
+
+    <div class="adim-basit">
+      <div class="adim-no">4</div>
+      <div class="adim-text">Bitki hücresi yapıyorsan kabın etrafına <strong>kalın karton</strong> sar — bu hücre duvarını temsil eder.</div>
+    </div>
+
+    <div class="adim-basit">
+      <div class="adim-no">5</div>
+      <div class="adim-text">Bitki hücresi için <strong>yeşil boncuklar</strong> ekle (kloroplast) ve büyük bir su balonu yerleştir (merkezi koful).</div>
+    </div>
+
+    <div class="adim-basit">
+      <div class="adim-no">6</div>
+      <div class="adim-text">Her organelin yanına küçük bir <strong>etiket kartı</strong> koy — organel adını ve görevini yaz.</div>
+    </div>
+  </section>
+
+  <!-- ═══ BÖLÜM 6: Gözlem Defteri ═══ -->
+  <section>
+    <div class="section-title"><span>📝</span> Gözlem Defteri</div>
+    <div class="card">
+
+      <div class="gozlem-alan">
+        <label>🐾 Hayvan Hücresi Gözlemlerim</label>
+        <textarea placeholder="Hayvan hücresi maketinde neler gözlemledin? Hangi organelleri yerleştirdin?"></textarea>
+      </div>
+
+      <div class="gozlem-alan">
+        <label>🌿 Bitki Hücresi Gözlemlerim</label>
+        <textarea placeholder="Bitki hücresi maketinde farklı olan neydi? Kloroplast ve hücre duvarını nasıl temsil ettin?"></textarea>
+      </div>
+
+      <div class="gozlem-alan">
+        <label>⚖️ İki hücre arasındaki farklar</label>
+        <textarea placeholder="Hayvan ve bitki hücreleri arasında gözlemlediğin en önemli farklar neler? Neden bu farklar var?"></textarea>
+      </div>
+
+      <button class="kaydet-btn" onclick="kaydet()">💾 Gözlem Raporunu Kaydet</button>
+    </div>
+  </section>
+
+  <!-- ═══ QR KOD ═══ -->
+  <section>
+    <div class="section-title"><span>📱</span> QR Kodu</div>
+    <div class="card">
+      <div class="qr-section">
+        <div id="qrcode"></div>
+        <div class="qr-info">
+          <h3>Paylaş</h3>
+          <p>QR kodu tarayarak bu deney sayfasına doğrudan erişebilirsin. Arkadaşlarınla veya öğretmeninle paylaş.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="../assets/dogrulab.js"></script>
+<script>
+var aktifHucre = 'hayvan';
+
+var organelVerisi = {
+  'hucrezari': {
+    ad: '🛡️ Hücre Zarı',
+    analoji: '🏙️ Şehrin güvenlik duvarı',
+    aciklama: 'Hücreye giren ve çıkan maddeleri kontrol eder. Seçici geçirgen yapısı sayesinde yararlı maddeleri içeri alır, zararlı maddeleri dışarıda bırakır. Çift katlı yağ tabakasından oluşur.',
+    funfact: '💡 Hücre zarı saniyede binlerce molekülü kontrol eder — bir havalimanı güvenliğinden çok daha hızlı!'
+  },
+  'sitoplazma': {
+    ad: '🫧 Sitoplazma',
+    analoji: '🏙️ Şehrin yolları ve araçları',
+    aciklama: 'Organellerin içinde yüzdüğü jel benzeri ortamdır. %80 oranında sudan oluşur. Hücre içi kimyasal reaksiyonların büyük bölümü burada gerçekleşir.',
+    funfact: '💡 Sitoplazma sürekli hareket halindedir — bu harekete "sitoplazma akımı" denir ve maddelerin taşınmasını sağlar.'
+  },
+  'cekirdek': {
+    ad: '🔵 Çekirdek',
+    analoji: '🏙️ Belediye binası — yönetim merkezi',
+    aciklama: 'DNA\'yı barındırır ve hücrenin tüm faaliyetlerini yönetir. Protein sentezini kontrol eder. Çift zarlı yapıya sahiptir ve içinde çekirdekçik bulunur.',
+    funfact: '💡 İnsan DNA\'sı açılsa yaklaşık 2 metre uzunluğunda olurdu — ama çekirdeğin çapı sadece 6 mikrometre!'
+  },
+  'mitokondri': {
+    ad: '🟠 Mitokondri',
+    analoji: '🏙️ Enerji santrali',
+    aciklama: 'Besinlerden enerji (ATP) üretir. Çift zarlı yapısı vardır — iç zar kıvrımları (krista) enerji üretim yüzeyini artırır. Kendi DNA\'sına sahip olan nadir organellerdendir.',
+    funfact: '💡 Kas hücreleri çok enerji harcadığı için binlerce mitokondri içerir. Kalp kasında bir hücrede 5000\'den fazla mitokondri bulunabilir!'
+  },
+  'ribozom': {
+    ad: '🩷 Ribozom',
+    analoji: '🏙️ Fabrika — üretim bandı',
+    aciklama: 'Protein üretir. DNA\'dan gelen talimatlara göre amino asitleri birleştirerek protein zinciri oluşturur. Serbest halde veya ER\'a bağlı olarak bulunabilir.',
+    funfact: '💡 Tek bir hücrede milyonlarca ribozom bulunabilir. Saniyede yaklaşık 20 amino asit birleştirebilir!'
+  },
+  'er': {
+    ad: '💜 Endoplazmik Retikulum',
+    analoji: '🏙️ Kargo taşıma sistemi',
+    aciklama: 'Maddeleri hücre içinde taşır. Kaba ER\'da ribozomlar bulunur ve protein üretir; düz ER lipit sentezi yapar ve zararlı maddeleri etkisiz hale getirir.',
+    funfact: '💡 ER\'ın toplam yüzey alanı hücre zarından 30 kat daha büyük olabilir — devasa bir kargo ağı!'
+  },
+  'golgi': {
+    ad: '🟡 Golgi Aygıtı',
+    analoji: '🏙️ Paketleme ve dağıtım merkezi',
+    aciklama: 'ER\'dan gelen proteinleri alır, işler, paketler ve hedef adresine gönderir. Yassı keseciklerden (sisterna) oluşur. Salgı hücrelerinde daha büyüktür.',
+    funfact: '💡 Golgi Aygıtı adını İtalyan bilim insanı Camillo Golgi\'den almıştır — 1898\'de keşfedilmiştir.'
+  },
+  'lizozom': {
+    ad: '🔴 Lizozom',
+    analoji: '🏙️ Geri dönüşüm tesisi',
+    aciklama: 'İçindeki sindirim enzimleri ile atık maddeleri, hasarlı organelleri ve hücreye giren yabancı maddeleri parçalar. Tek zarlı yapıdadır.',
+    funfact: '💡 Lizozom zarı zarar görürse enzimler hücreye yayılır ve hücre kendini sindirir — buna "otoliz" denir!'
+  },
+  'kloroplast': {
+    ad: '🟢 Kloroplast',
+    analoji: '🏙️ Güneş enerjisi paneli',
+    aciklama: 'Fotosentez yapar — ışık enerjisini kimyasal enerjiye çevirir. İçindeki klorofil pigmenti yeşil ışığı yansıtır, bu yüzden bitkiler yeşildir. Çift zarlı yapıya sahiptir.',
+    funfact: '💡 Kloroplastlar mitokondriler gibi kendi DNA\'larına sahiptir. Bilim insanları bunların milyarlarca yıl önce bağımsız bakteri olduğunu düşünüyor!'
+  },
+  'koful-h': {
+    ad: '💧 Koful (Küçük)',
+    analoji: '🏙️ Küçük depolar',
+    aciklama: 'Hayvan hücrelerinde küçük ve çok sayıda koful bulunur. Su, besin ve atık madde depolar. Bazıları sindirimde, bazıları madde taşımada görev alır.',
+    funfact: '💡 Amipler gibi tek hücreli canlılarda besin kofulu, yedikleri besinleri sindirmek için kullanılır.'
+  },
+  'koful-b': {
+    ad: '💧 Merkezi Koful (Büyük)',
+    analoji: '🏙️ Dev su deposu',
+    aciklama: 'Bitki hücrelerinde tek ve çok büyük bir merkezi koful vardır — hücre hacminin %90\'ına kadar kaplayabilir. Su, mineraller ve atık madde depolar. Turgor basıncını sağlar.',
+    funfact: '💡 Turgor basıncı bitkinin dik durmasını sağlar. Bir bitkiyi sulamazsan yaprakları solar — çünkü koful su kaybetmiştir!'
+  },
+  'hucreduvari': {
+    ad: '🧱 Hücre Duvarı',
+    analoji: '🏙️ Şehrin surları',
+    aciklama: 'Sadece bitki hücrelerinde bulunur. Selülozdan yapılmış sert, koruyucu bir tabakadır. Hücre zarının dışında yer alır. Bitkiye şekil ve destek verir.',
+    funfact: '💡 Selüloz, dünya üzerindeki en bol organik moleküldür. Kağıt, pamuk ve tahta tamamen selülozdan oluşur!'
+  }
+};
+
+function organelBilgi(id) {
+  var veri = organelVerisi[id];
+  if (!veri) return;
+  document.getElementById('organelAdi').textContent = veri.ad;
+  document.getElementById('organelAciklama').textContent = veri.aciklama;
+
+  var panelEl = document.getElementById('organelPanel');
+  panelEl.classList.add('aktif');
+
+  var analojiEl = document.getElementById('organelAnaloji');
+  analojiEl.textContent = veri.analoji;
+  analojiEl.style.display = 'block';
+
+  var funfactEl = document.getElementById('organelFunfact');
+  funfactEl.textContent = veri.funfact;
+  funfactEl.style.display = 'block';
+}
+
+function hucreGoster(tip) {
+  aktifHucre = tip;
+  document.getElementById('svgHayvan').style.display = tip === 'hayvan' ? 'block' : 'none';
+  document.getElementById('svgBitki').style.display = tip === 'bitki' ? 'block' : 'none';
+  document.getElementById('btnHayvan').className = tip === 'hayvan' ? 'btn btn-primary' : 'btn btn-secondary';
+  document.getElementById('btnBitki').className = tip === 'bitki' ? 'btn btn-primary' : 'btn btn-secondary';
+  // Bilgi panelini sıfırla
+  document.getElementById('organelAdi').textContent = 'Bir organel seç';
+  document.getElementById('organelAciklama').textContent = 'Yukarıdaki hücre modelinde bir organele tıklayarak görevini öğren.';
+  document.getElementById('organelAnaloji').style.display = 'none';
+  document.getElementById('organelFunfact').style.display = 'none';
+  document.getElementById('organelPanel').classList.remove('aktif');
+}
+
+function kesfetToggle(el) {
+  el.classList.toggle('acik');
+}
+</script>
+
+</body>
+</html>

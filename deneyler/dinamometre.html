@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dinamometre — Kuvvet Ölçer | DoğruLab</title>
+  <link rel="stylesheet" href="../assets/dogrulab.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    /* Keşfet expandable cards */
+    .kesfet{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;margin-bottom:8px;cursor:pointer;overflow:hidden;transition:border-color .3s}
+    .kesfet:hover{border-color:var(--border)}
+    .kesfet-baslik{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:600;color:var(--h2)}
+    .kesfet-ok{transition:transform .3s;color:var(--text2);font-size:.75rem}
+    .kesfet.acik .kesfet-ok{transform:rotate(180deg)}
+    .kesfet-icerik{max-height:0;overflow:hidden;transition:max-height .4s ease;padding:0 16px;font-size:.82rem;color:var(--text2);line-height:1.8}
+    .kesfet.acik .kesfet-icerik{max-height:500px;padding:0 16px 14px}
+    .kesfet-icerik strong{color:var(--teal)}
+
+    /* Concept cards */
+    .kavram-row{display:flex;gap:12px;margin:18px 0;flex-wrap:wrap}
+    .kavram-card{flex:1;min-width:160px;border-radius:12px;padding:18px 16px;border:1px solid var(--border2);background:var(--bg2);transition:border-color .3s,transform .2s}
+    .kavram-card:hover{transform:translateY(-2px)}
+    .kavram-card.cyan{border-color:rgba(93,173,226,.35)}
+    .kavram-card.cyan .kavram-baslik{color:var(--cyan)}
+    .kavram-card.teal{border-color:rgba(72,201,176,.35)}
+    .kavram-card.teal .kavram-baslik{color:var(--teal)}
+    .kavram-card.orange{border-color:rgba(255,166,87,.35)}
+    .kavram-card.orange .kavram-baslik{color:var(--orange)}
+    .kavram-baslik{font-size:.95rem;font-weight:700;margin-bottom:6px}
+    .kavram-desc{font-size:.8rem;color:var(--text2);line-height:1.6}
+    .kavram-birim{font-size:.72rem;color:var(--text2);margin-top:6px;opacity:.8}
+    .kavram-analoji{font-size:.75rem;color:var(--text);margin-top:8px;padding:6px 10px;background:rgba(255,255,255,.03);border-radius:6px;border-left:2px solid var(--border2)}
+
+    /* Spring type selector */
+    .yay-sec-row{display:flex;gap:8px;flex-wrap:wrap}
+    .yay-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .yay-btn:hover{border-color:var(--text2);color:var(--text)}
+    .yay-btn.aktif{border-color:var(--teal);color:var(--teal);background:rgba(72,201,176,.08)}
+
+    /* Graph canvas */
+    .grafik-wrap{position:relative}
+    .grafik-wrap canvas{width:100%;display:block;border-radius:0 0 14px 14px}
+
+    /* Numbered steps (no checkboxes) */
+    .adim-listesi{display:flex;flex-direction:column;gap:10px}
+    .adim-satir{display:flex;align-items:flex-start;gap:14px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px 16px}
+    .adim-satir:hover{border-color:var(--border)}
+    .adim-numara{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--teal));color:#070b16;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .adim-metin{font-size:.875rem;line-height:1.6;color:var(--text)}
+    .adim-metin strong{color:var(--h3)}
+
+    /* Data table auto-calc */
+    .veri-tablosu td input{text-align:center}
+    .hesaplanan{color:var(--teal)!important;font-weight:600}
+
+    /* Observation notebook */
+    .gozlem-alan{margin-bottom:14px}
+    .gozlem-alan label{display:block;font-size:.82rem;color:var(--text2);font-weight:500;margin-bottom:6px}
+
+    /* Sim canvas */
+    .sim-canvas-wrap canvas{display:block;margin:0 auto}
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="../index.html">⚗️ DoğruLab</a>
+  <div class="deney-badge">Fizik · 8. Sınıf</div>
+</header>
+
+<main>
+
+  <!-- ═══ SECTION 1: HERO ═══ -->
+  <div class="hero">
+    <span class="hero-emoji">🔩</span>
+    <h1>Dinamometre — Kuvvet Ölçer</h1>
+    <p>Bir yayı gerdiğinde ne kadar kuvvet uyguladığını merak ettin mi? Dinamometre tam bunu ölçer!</p>
+    <div class="meta-row">
+      <span class="meta-chip sinif">Fizik · 8. Sınıf</span>
+      <span class="meta-chip sure">⏱ 20 dk</span>
+      <span class="meta-chip zorluk">✦ Kolay</span>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 2: HOOKE YASASI ═══ -->
+  <section>
+    <div class="section-title"><span>📖</span> Hooke Yasası — Kuvvet ve Uzama İlişkisi</div>
+    <div class="card">
+      <p style="margin-bottom:16px;color:var(--text);">Bir yayı çektiğinde geri iten bir kuvvet hissedersin. Ne kadar çok çekersen, o kadar çok iter. Bu ilişki tesadüf değil — bir yasa var arkasında.</p>
+
+      <div class="kavram-row">
+        <!-- Kuvvet -->
+        <div class="kavram-card cyan">
+          <div class="kavram-baslik">Kuvvet (F)</div>
+          <div class="kavram-desc">Yayı çeken güç</div>
+          <div class="kavram-birim">Birim: Newton (N)</div>
+          <div class="kavram-analoji">Bir nesneyi iterken veya çekerken uyguladığın etki</div>
+        </div>
+        <!-- Yay Sabiti -->
+        <div class="kavram-card teal">
+          <div class="kavram-baslik">Yay Sabiti (k)</div>
+          <div class="kavram-desc">Yayın sertliği</div>
+          <div class="kavram-birim">Birim: N/m</div>
+          <div class="kavram-analoji">Sert yay = büyük k, yumuşak yay = küçük k</div>
+        </div>
+        <!-- Uzama -->
+        <div class="kavram-card orange">
+          <div class="kavram-baslik">Uzama (Δx)</div>
+          <div class="kavram-desc">Yayın ne kadar uzadığı</div>
+          <div class="kavram-birim">Birim: metre (m)</div>
+          <div class="kavram-analoji">Doğal boyundan ne kadar farklı</div>
+        </div>
+      </div>
+
+      <div class="formul-card">
+        <div class="formul">F = k × Δx</div>
+        <div class="formul-aciklama">
+          <span>Hooke Yasası — Kuvvet = Yay sabiti × Uzama</span>
+        </div>
+      </div>
+
+      <!-- Keşfet kartları -->
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>🔬 Hooke Yasası'nın sınırı var mı?</span><span class="kesfet-ok">▼</span></div>
+        <div class="kesfet-icerik">Evet! Yayı çok fazla gerersen <strong>elastikiyet sınırı</strong> aşılır ve yay eski haline dönmez. Buna <strong>kalıcı deformasyon</strong> denir. Dinamometrelerde bu sınırın aşılmaması için genellikle bir güvenlik durdurucu bulunur.</div>
+      </div>
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>⚖️ Newton nedir?</span><span class="kesfet-ok">▼</span></div>
+        <div class="kesfet-icerik">1 Newton, <strong>100 gram</strong> ağırlığındaki bir cismi kaldırmak için gereken kuvvettir. Yaklaşık bir elma ağırlığı! Adını ünlü fizikçi <strong>Isaac Newton</strong>'dan alır.</div>
+      </div>
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>🌍 Dinamometre nerelerde kullanılır?</span><span class="kesfet-ok">▼</span></div>
+        <div class="kesfet-icerik">Dinamometreler günlük hayatta birçok yerde karşımıza çıkar: <strong>balık tartıları</strong>, <strong>bavul tartıları</strong> ve <strong>laboratuvar deneyleri</strong>. Hatta süpermarketteki asma teraziler de benzer prensiple çalışır.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3: SİMÜLASYON ═══ -->
+  <section>
+    <div class="section-title"><span>🔬</span> İnteraktif Dinamometre Simülasyonu</div>
+    <div class="sim-container">
+      <div class="sim-canvas-wrap">
+        <canvas id="dinamoCanvas" width="600" height="480"></canvas>
+      </div>
+      <div class="sim-controls">
+        <div class="sim-info-row">
+          <div class="info-card">
+            <div class="label">Kütle</div>
+            <div class="value" id="infoKutle">50 g</div>
+          </div>
+          <div class="info-card">
+            <div class="label">Ağırlık (F)</div>
+            <div class="value" id="infoAgirlik">0.49 N</div>
+          </div>
+          <div class="info-card">
+            <div class="label">Uzama (Δx)</div>
+            <div class="value" id="infoUzama">2.5 cm</div>
+          </div>
+          <div class="info-card">
+            <div class="label">Yay Sabiti (k)</div>
+            <div class="value" id="infoK">20 N/m</div>
+          </div>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label">
+            <strong>Asılan Kütle</strong>
+            <span id="lblKutle">50 g</span>
+          </div>
+          <input type="range" id="sliderKutle" min="50" max="500" step="50" value="50">
+        </div>
+
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <span style="font-size:.82rem;color:var(--text2);font-weight:500">Yay Türü:</span>
+          <div class="yay-sec-row">
+            <button class="yay-btn" data-k="10" onclick="yaySecimi(this)">Yumuşak (k=10)</button>
+            <button class="yay-btn aktif" data-k="20" onclick="yaySecimi(this)">Normal (k=20)</button>
+            <button class="yay-btn" data-k="40" onclick="yaySecimi(this)">Sert (k=40)</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-danger" onclick="dinamoSifirla()">↺ Sıfırla</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 4: GRAF ═══ -->
+  <section>
+    <div class="section-title"><span>📊</span> Kuvvet-Uzama Grafiği</div>
+    <div class="sim-container">
+      <div class="grafik-wrap">
+        <canvas id="grafikCanvas" width="600" height="260"></canvas>
+      </div>
+      <div class="sim-controls">
+        <p style="font-size:.82rem;color:var(--text2);line-height:1.6;margin:0">Simülasyonda farklı kütle değerleri dene, sonra <strong style="color:var(--teal)">Ölçüm Ekle</strong> butonuna bas. Noktalar düz bir çizgi oluşturuyorsa, Hooke Yasası doğrulanmış demektir!</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="olcumEkle()">＋ Ölçüm Ekle</button>
+          <button class="btn btn-secondary" onclick="grafigiTemizle()">Grafiği Temizle</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 5: MALZEMELER ═══ -->
+  <section>
+    <div class="section-title"><span>🧰</span> Deney Malzemeleri</div>
+    <div class="card" style="padding:12px 16px">
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>🔩 Yay</span><span class="kesfet-ok">▼</span></div>
+        <div class="kesfet-icerik">Farklı sertliklerde (yumuşak, sert) yaylar. Her yayın kendine özgü bir <strong>yay sabiti (k)</strong> değeri vardır. Deney için en az iki farklı yay kullanmak sonuçları karşılaştırmana yardımcı olur.</div>
+      </div>
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>⚖️ Kancalı Ağırlıklar</span><span class="kesfet-ok">▼</span></div>
+        <div class="kesfet-icerik">50 g'dan 500 g'a kadar ağırlıklar. Yaya asarak kuvvet uygularız. Ağırlıkların kütleleri <strong>hassas terazi</strong> ile doğrulanmalıdır.</div>
+      </div>
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>📏 Cetvel</span><span class="kesfet-ok">▼</span></div>
+        <div class="kesfet-icerik">Yayın uzamasını <strong>milimetre hassasiyetinde</strong> ölçmek için. En az 30 cm uzunluğunda bir cetvel yeterlidir.</div>
+      </div>
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>📐 Destek Standı</span><span class="kesfet-ok">▼</span></div>
+        <div class="kesfet-icerik">Yayı dikey olarak asmak için sabit düzenek. Standın <strong>devrilmeyecek kadar ağır</strong> ve sağlam olması önemlidir.</div>
+      </div>
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>📝 Hesap Makinesi</span><span class="kesfet-ok">▼</span></div>
+        <div class="kesfet-icerik"><strong>F = k × Δx</strong> hesaplamalarını doğrulamak için. Telefonundaki hesap makinesi de yeterlidir.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 6: DENEY ADIMLARI ═══ -->
+  <section>
+    <div class="section-title"><span>🧪</span> Deney Adımları</div>
+    <div class="adim-listesi">
+      <div class="adim-satir">
+        <div class="adim-numara">1</div>
+        <div class="adim-metin">Yayı destek standına as ve <strong>doğal boyunu</strong> ölç (L₀). Bu senin referans noktandır.</div>
+      </div>
+      <div class="adim-satir">
+        <div class="adim-numara">2</div>
+        <div class="adim-metin"><strong>50 g</strong> ağırlık as. Yayın yeni boyunu ölç (L₁). Uzama: <strong>Δx = L₁ − L₀</strong>.</div>
+      </div>
+      <div class="adim-satir">
+        <div class="adim-numara">3</div>
+        <div class="adim-metin">100 g, 150 g, 200 g... şeklinde ağırlığı artır. Her seferinde <strong>uzamayı kaydet</strong>.</div>
+      </div>
+      <div class="adim-satir">
+        <div class="adim-numara">4</div>
+        <div class="adim-metin">Kuvvet-uzama tablosunu doldur. Kuvveti hesapla: <strong>F = m × g</strong> (g = 9,8 m/s²).</div>
+      </div>
+      <div class="adim-satir">
+        <div class="adim-numara">5</div>
+        <div class="adim-metin">Verileri grafiğe aktar. <strong>Doğrusal bir ilişki</strong> görüyor musun?</div>
+      </div>
+      <div class="adim-satir">
+        <div class="adim-numara">6</div>
+        <div class="adim-metin">Yay sabitini hesapla: <strong>k = F / Δx</strong>. Her ölçümde yaklaşık aynı mı çıkıyor?</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 7: VERİ TABLOSU ═══ -->
+  <section>
+    <div class="section-title"><span>📋</span> Veri Tablosu</div>
+    <div class="card">
+      <div class="tablo-wrap">
+        <table class="veri-tablosu">
+          <thead>
+            <tr>
+              <th>Kütle (g)</th>
+              <th>Ağırlık F (N)</th>
+              <th>Uzama Δx (cm)</th>
+              <th>k = F/Δx (N/m)</th>
+            </tr>
+          </thead>
+          <tbody id="veriTablosu">
+            <tr>
+              <td><input type="number" placeholder="50" step="10" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+              <td><input type="number" placeholder="0.0" step="0.1" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+            </tr>
+            <tr>
+              <td><input type="number" placeholder="100" step="10" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+              <td><input type="number" placeholder="0.0" step="0.1" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+            </tr>
+            <tr>
+              <td><input type="number" placeholder="150" step="10" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+              <td><input type="number" placeholder="0.0" step="0.1" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+            </tr>
+            <tr>
+              <td><input type="number" placeholder="200" step="10" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+              <td><input type="number" placeholder="0.0" step="0.1" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+            </tr>
+            <tr>
+              <td><input type="number" placeholder="250" step="10" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+              <td><input type="number" placeholder="0.0" step="0.1" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+            </tr>
+            <tr>
+              <td><input type="number" placeholder="300" step="10" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+              <td><input type="number" placeholder="0.0" step="0.1" onchange="tabloHesapla(this)"></td>
+              <td><span class="hesaplanan">—</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note-box yesil" style="margin-top:14px;">
+        <strong>İpucu</strong>
+        Kütle ve uzama değerlerini gir, Ağırlık ve k otomatik hesaplanır. k değerlerinin birbirine yakın çıkması, yayın Hooke Yasası'na uyduğunu gösterir.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 8: GÖZLEM DEFTERİ ═══ -->
+  <section>
+    <div class="section-title"><span>📝</span> Gözlem Defteri</div>
+    <div class="card">
+      <div class="gozlem-alan">
+        <label>Gözlemlerim</label>
+        <textarea placeholder="Deneyde neler gözlemledin? Yayın davranışı seni şaşırttı mı?"></textarea>
+      </div>
+      <div class="gozlem-alan">
+        <label>Hooke Yasası doğrulandı mı?</label>
+        <textarea placeholder="Kuvvet-uzama grafiğin doğrusal mı çıktı? k değerleri yaklaşık aynı mı?"></textarea>
+      </div>
+      <div class="gozlem-alan">
+        <label>Farklı yaylarla sonuçlar nasıl değişti?</label>
+        <textarea placeholder="Sert yay ile yumuşak yayın uzama farkını karşılaştır..."></textarea>
+      </div>
+      <button class="kaydet-btn" onclick="kaydet()">💾 Gözlemleri Kaydet</button>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 9: QR KOD ═══ -->
+  <section>
+    <div class="section-title"><span>📱</span> QR Kodu</div>
+    <div class="card">
+      <div class="qr-section">
+        <div id="qrcode"></div>
+        <div class="qr-info">
+          <h3>Paylaş</h3>
+          <p>QR kodu tarayarak bu deney sayfasına doğrudan erişebilirsin. Arkadaşlarınla veya öğretmeninle paylaş.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="../assets/dogrulab.js"></script>
+<script>
+// ══════════════════════════════════════
+//  DİNAMOMETRE SİMÜLASYONU
+// ══════════════════════════════════════
+
+var canvas, ctx, grafikCanvas, gCtx;
+var yaySabiti = 20;       // N/m
+var hedefUzama = 0;       // animasyon hedefi (piksel)
+var mevcutUzama = 0;      // anlık uzama (piksel)
+var animFrameId = null;
+
+// Grafik veri noktaları
+var olcumler = [];
+
+// ── Başlatma ──
+window.addEventListener('load', function () {
+  canvas = document.getElementById('dinamoCanvas');
+  ctx = canvas.getContext('2d');
+  grafikCanvas = document.getElementById('grafikCanvas');
+  gCtx = grafikCanvas.getContext('2d');
+
+  document.getElementById('sliderKutle').addEventListener('input', sliderDegisti);
+  hesaplaVeCiz();
+  grafikCiz();
+});
+
+// ── Yay seçimi ──
+function yaySecimi(btn) {
+  document.querySelectorAll('.yay-btn').forEach(function(b) { b.classList.remove('aktif'); });
+  btn.classList.add('aktif');
+  yaySabiti = parseInt(btn.getAttribute('data-k'));
+  hesaplaVeCiz();
+}
+
+// ── Slider değişimi ──
+function sliderDegisti() {
+  hesaplaVeCiz();
+}
+
+// ── Ana hesaplama ve güncelleme ──
+function hesaplaVeCiz() {
+  var kutle = parseInt(document.getElementById('sliderKutle').value);
+  document.getElementById('lblKutle').textContent = kutle + ' g';
+
+  var agirlik = (kutle / 1000) * 9.8;   // Newton
+  var uzamaMetre = agirlik / yaySabiti;  // metre
+  var uzamaCm = uzamaMetre * 100;        // cm
+
+  // Bilgi panelleri güncelle
+  document.getElementById('infoKutle').textContent = kutle + ' g';
+  document.getElementById('infoAgirlik').textContent = agirlik.toFixed(2) + ' N';
+  document.getElementById('infoUzama').textContent = uzamaCm.toFixed(1) + ' cm';
+  document.getElementById('infoK').textContent = yaySabiti + ' N/m';
+
+  // Piksel uzama hedefi (max ~180px)
+  hedefUzama = Math.min(uzamaCm * 12, 180);
+
+  // Animasyonu başlat
+  if (!animFrameId) animasyonDongusu();
+}
+
+// ── Lerp animasyon ──
+function animasyonDongusu() {
+  var fark = hedefUzama - mevcutUzama;
+  if (Math.abs(fark) < 0.5) {
+    mevcutUzama = hedefUzama;
+    dinamoCiz();
+    animFrameId = null;
+    return;
+  }
+  mevcutUzama += fark * 0.12;
+  dinamoCiz();
+  animFrameId = requestAnimationFrame(animasyonDongusu);
+}
+
+// ══════════════════════════════════════
+//  CANVAS ÇİZİMİ
+// ══════════════════════════════════════
+function dinamoCiz() {
+  var W = canvas.width;
+  var H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Arka plan
+  ctx.fillStyle = '#070b16';
+  ctx.fillRect(0, 0, W, H);
+
+  var kutle = parseInt(document.getElementById('sliderKutle').value);
+  var agirlik = (kutle / 1000) * 9.8;
+  var uzamaCm = (agirlik / yaySabiti) * 100;
+
+  var cx = W / 2;
+  var ustY = 30;
+
+  // ── Üst montaj noktası ──
+  ctx.fillStyle = '#3a4a5a';
+  ctx.beginPath();
+  ctx.roundRect(cx - 80, ustY - 10, 160, 18, 4);
+  ctx.fill();
+  ctx.strokeStyle = '#5a6a7a';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Kanca
+  ctx.strokeStyle = '#8b949e';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(cx, ustY + 8);
+  ctx.lineTo(cx, ustY + 22);
+  ctx.stroke();
+
+  // ── Yay çizimi (zigzag) ──
+  var yayBasY = ustY + 22;
+  var yayDogalBoy = 80;
+  var yayToplamBoy = yayDogalBoy + mevcutUzama;
+  var yayBitY = yayBasY + yayToplamBoy;
+  var segmentSayisi = 12;
+  var zigzagGenislik = 22;
+
+  // Yay gölgesi
+  ctx.strokeStyle = 'rgba(72,201,176,0.15)';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(cx, yayBasY);
+  for (var i = 1; i <= segmentSayisi; i++) {
+    var t = i / segmentSayisi;
+    var yy = yayBasY + t * yayToplamBoy;
+    var xx = cx + (i % 2 === 0 ? -zigzagGenislik : zigzagGenislik);
+    if (i === segmentSayisi) xx = cx;
+    ctx.lineTo(xx, yy);
+  }
+  ctx.stroke();
+
+  // Yay ana çizgi
+  var yayGrad = ctx.createLinearGradient(cx, yayBasY, cx, yayBitY);
+  yayGrad.addColorStop(0, '#7ed6c4');
+  yayGrad.addColorStop(0.5, '#48c9b0');
+  yayGrad.addColorStop(1, '#2ea68a');
+  ctx.strokeStyle = yayGrad;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx, yayBasY);
+  for (var i = 1; i <= segmentSayisi; i++) {
+    var t = i / segmentSayisi;
+    var yy = yayBasY + t * yayToplamBoy;
+    var xx = cx + (i % 2 === 0 ? -zigzagGenislik : zigzagGenislik);
+    if (i === segmentSayisi) xx = cx;
+    ctx.lineTo(xx, yy);
+  }
+  ctx.stroke();
+
+  // ── Doğal boy referans çizgisi (kesikli) ──
+  var dogalBitY = yayBasY + yayDogalBoy;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(255,166,87,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx - 90, dogalBitY);
+  ctx.lineTo(cx + 90, dogalBitY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // "L₀" etiketi
+  ctx.fillStyle = 'rgba(255,166,87,0.6)';
+  ctx.font = '500 10px Poppins, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('L₀ (doğal boy)', cx + 95, dogalBitY + 4);
+
+  // ── Cetvel (sağ taraf) ──
+  var cetvelX = cx + 70;
+  var cetvelBasY = dogalBitY;
+  var maxCm = Math.max(Math.ceil(uzamaCm) + 2, 8);
+
+  ctx.fillStyle = 'rgba(93,173,226,0.06)';
+  ctx.fillRect(cetvelX - 8, cetvelBasY, 50, maxCm * 12);
+
+  ctx.font = '9px Poppins, sans-serif';
+  ctx.textAlign = 'left';
+  for (var cm = 0; cm <= maxCm; cm++) {
+    var ry = cetvelBasY + cm * 12;
+    var buyukCizgi = cm % 2 === 0;
+    ctx.strokeStyle = buyukCizgi ? 'rgba(93,173,226,0.6)' : 'rgba(93,173,226,0.3)';
+    ctx.lineWidth = buyukCizgi ? 1.5 : 0.8;
+    ctx.beginPath();
+    ctx.moveTo(cetvelX, ry);
+    ctx.lineTo(cetvelX + (buyukCizgi ? 14 : 8), ry);
+    ctx.stroke();
+    if (buyukCizgi) {
+      ctx.fillStyle = '#8b949e';
+      ctx.fillText(cm + ' cm', cetvelX + 18, ry + 3);
+    }
+  }
+
+  // Uzama göstergesi ok (cetvel üzerinde)
+  if (mevcutUzama > 2) {
+    var uzamaPixel = Math.min(mevcutUzama, maxCm * 12);
+    ctx.strokeStyle = 'var(--orange)';
+    ctx.fillStyle = '#ffa657';
+    ctx.lineWidth = 2;
+
+    // Çift ok (Δx göstergesi)
+    var okX = cetvelX - 16;
+    ctx.beginPath();
+    ctx.moveTo(okX, cetvelBasY + 2);
+    ctx.lineTo(okX, cetvelBasY + uzamaPixel - 2);
+    ctx.stroke();
+
+    // Üst ok ucu
+    ctx.beginPath();
+    ctx.moveTo(okX, cetvelBasY + 2);
+    ctx.lineTo(okX - 3, cetvelBasY + 8);
+    ctx.lineTo(okX + 3, cetvelBasY + 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Alt ok ucu
+    ctx.beginPath();
+    ctx.moveTo(okX, cetvelBasY + uzamaPixel - 2);
+    ctx.lineTo(okX - 3, cetvelBasY + uzamaPixel - 8);
+    ctx.lineTo(okX + 3, cetvelBasY + uzamaPixel - 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Δx etiketi
+    ctx.fillStyle = '#ffa657';
+    ctx.font = 'bold 11px Poppins, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('Δx', okX - 6, cetvelBasY + uzamaPixel / 2 + 4);
+  }
+
+  // ── Kütle bloğu ──
+  if (kutle > 0) {
+    var blokY = yayBitY + 4;
+    var blokW = 36 + Math.sqrt(kutle / 50) * 6;
+    var blokH = 28 + Math.sqrt(kutle / 50) * 4;
+
+    // Kanca
+    ctx.strokeStyle = '#8b949e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, yayBitY);
+    ctx.lineTo(cx, blokY);
+    ctx.stroke();
+
+    // Ağırlık bloğu
+    var blokGrad = ctx.createLinearGradient(cx - blokW/2, blokY, cx + blokW/2, blokY);
+    blokGrad.addColorStop(0, '#8a5a20');
+    blokGrad.addColorStop(0.3, '#c98030');
+    blokGrad.addColorStop(0.6, '#ffa657');
+    blokGrad.addColorStop(1, '#a06820');
+    ctx.fillStyle = blokGrad;
+    ctx.beginPath();
+    ctx.roundRect(cx - blokW/2, blokY, blokW, blokH, 5);
+    ctx.fill();
+    ctx.strokeStyle = '#ff8822';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Kütle etiketi
+    ctx.fillStyle = '#070b16';
+    ctx.font = 'bold 10px Poppins, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(kutle + ' g', cx, blokY + blokH / 2 + 4);
+
+    // ── Kuvvet oku (aşağı yönlü) ──
+    var okBasY = blokY + blokH + 8;
+    var okBoy = 20 + agirlik * 8;
+    if (okBoy > 80) okBoy = 80;
+    var okBitY = okBasY + okBoy;
+
+    ctx.strokeStyle = '#f85149';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx, okBasY);
+    ctx.lineTo(cx, okBitY);
+    ctx.stroke();
+
+    // Ok ucu
+    ctx.fillStyle = '#f85149';
+    ctx.beginPath();
+    ctx.moveTo(cx, okBitY + 2);
+    ctx.lineTo(cx - 6, okBitY - 8);
+    ctx.lineTo(cx + 6, okBitY - 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // F etiketi
+    ctx.fillStyle = '#f85149';
+    ctx.font = 'bold 12px Poppins, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('F = ' + agirlik.toFixed(2) + ' N', cx + 10, okBasY + okBoy / 2 + 4);
+
+    // Kuvvet yönü etiketi
+    ctx.fillStyle = 'rgba(248,81,73,0.5)';
+    ctx.font = '9px Poppins, sans-serif';
+    ctx.fillText('(ağırlık kuvveti)', cx + 10, okBasY + okBoy / 2 + 18);
+  }
+
+  // ── Sol taraf: bilgi paneli ──
+  var panelX = 20;
+  var panelY = ustY + 40;
+
+  ctx.fillStyle = 'rgba(93,173,226,0.08)';
+  ctx.beginPath();
+  ctx.roundRect(panelX, panelY, 120, 80, 8);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(93,173,226,0.2)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = '#5dade2';
+  ctx.font = 'bold 10px Poppins, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('DİNAMOMETRE', panelX + 10, panelY + 18);
+
+  ctx.fillStyle = '#8b949e';
+  ctx.font = '9px Poppins, sans-serif';
+  ctx.fillText('k = ' + yaySabiti + ' N/m', panelX + 10, panelY + 36);
+
+  var yayTuru = yaySabiti <= 10 ? 'Yumuşak yay' : yaySabiti <= 20 ? 'Normal yay' : 'Sert yay';
+  ctx.fillText(yayTuru, panelX + 10, panelY + 52);
+
+  ctx.fillStyle = uzamaCm > 15 ? '#f85149' : '#48c9b0';
+  ctx.font = 'bold 10px Poppins, sans-serif';
+  ctx.fillText('Δx = ' + uzamaCm.toFixed(1) + ' cm', panelX + 10, panelY + 70);
+}
+
+// ══════════════════════════════════════
+//  GRAFİK ÇİZİMİ
+// ══════════════════════════════════════
+function grafikCiz() {
+  var W = grafikCanvas.width;
+  var H = grafikCanvas.height;
+  gCtx.clearRect(0, 0, W, H);
+
+  // Arka plan
+  gCtx.fillStyle = '#070b16';
+  gCtx.fillRect(0, 0, W, H);
+
+  var kenarSol = 70;
+  var kenarSag = 40;
+  var kenarUst = 30;
+  var kenarAlt = 50;
+  var grafW = W - kenarSol - kenarSag;
+  var grafH = H - kenarUst - kenarAlt;
+
+  // Eksen aralıkları belirle
+  var maxUzama = 16; // cm
+  var maxKuvvet = 6; // N
+
+  // Izgaralar
+  gCtx.strokeStyle = 'rgba(93,173,226,0.1)';
+  gCtx.lineWidth = 0.5;
+  for (var i = 0; i <= 8; i++) {
+    var x = kenarSol + (grafW / 8) * i;
+    gCtx.beginPath();
+    gCtx.moveTo(x, kenarUst);
+    gCtx.lineTo(x, kenarUst + grafH);
+    gCtx.stroke();
+  }
+  for (var j = 0; j <= 6; j++) {
+    var y = kenarUst + grafH - (grafH / 6) * j;
+    gCtx.beginPath();
+    gCtx.moveTo(kenarSol, y);
+    gCtx.lineTo(kenarSol + grafW, y);
+    gCtx.stroke();
+  }
+
+  // Eksenler
+  gCtx.strokeStyle = 'rgba(93,173,226,0.5)';
+  gCtx.lineWidth = 1.5;
+  // Y ekseni
+  gCtx.beginPath();
+  gCtx.moveTo(kenarSol, kenarUst);
+  gCtx.lineTo(kenarSol, kenarUst + grafH);
+  gCtx.stroke();
+  // X ekseni
+  gCtx.beginPath();
+  gCtx.moveTo(kenarSol, kenarUst + grafH);
+  gCtx.lineTo(kenarSol + grafW, kenarUst + grafH);
+  gCtx.stroke();
+
+  // X ekseni etiketleri
+  gCtx.fillStyle = '#8b949e';
+  gCtx.font = '10px Poppins, sans-serif';
+  gCtx.textAlign = 'center';
+  for (var i = 0; i <= 8; i++) {
+    var val = (maxUzama / 8) * i;
+    var x = kenarSol + (grafW / 8) * i;
+    gCtx.fillText(val.toFixed(0), x, kenarUst + grafH + 18);
+
+    // Küçük çentik
+    gCtx.strokeStyle = 'rgba(93,173,226,0.4)';
+    gCtx.lineWidth = 1;
+    gCtx.beginPath();
+    gCtx.moveTo(x, kenarUst + grafH);
+    gCtx.lineTo(x, kenarUst + grafH + 5);
+    gCtx.stroke();
+  }
+  // X ekseni başlığı
+  gCtx.fillStyle = '#ffa657';
+  gCtx.font = '600 11px Poppins, sans-serif';
+  gCtx.fillText('Uzama Δx (cm)', kenarSol + grafW / 2, kenarUst + grafH + 40);
+
+  // Y ekseni etiketleri
+  gCtx.textAlign = 'right';
+  gCtx.fillStyle = '#8b949e';
+  gCtx.font = '10px Poppins, sans-serif';
+  for (var j = 0; j <= 6; j++) {
+    var val = (maxKuvvet / 6) * j;
+    var y = kenarUst + grafH - (grafH / 6) * j;
+    gCtx.fillText(val.toFixed(1), kenarSol - 10, y + 4);
+
+    gCtx.strokeStyle = 'rgba(93,173,226,0.4)';
+    gCtx.lineWidth = 1;
+    gCtx.beginPath();
+    gCtx.moveTo(kenarSol - 5, y);
+    gCtx.lineTo(kenarSol, y);
+    gCtx.stroke();
+  }
+  // Y ekseni başlığı (döndürülmüş)
+  gCtx.save();
+  gCtx.translate(18, kenarUst + grafH / 2);
+  gCtx.rotate(-Math.PI / 2);
+  gCtx.fillStyle = '#5dade2';
+  gCtx.font = '600 11px Poppins, sans-serif';
+  gCtx.textAlign = 'center';
+  gCtx.fillText('Kuvvet F (N)', 0, 0);
+  gCtx.restore();
+
+  // Eğer ölçüm varsa çiz
+  if (olcumler.length > 0) {
+    // Noktaları sırala
+    var sirali = olcumler.slice().sort(function(a, b) { return a.uzama - b.uzama; });
+
+    // Doğrusal çizgi (orijinden ilk-son arası)
+    if (sirali.length >= 2) {
+      gCtx.strokeStyle = 'rgba(72,201,176,0.4)';
+      gCtx.lineWidth = 1.5;
+      gCtx.setLineDash([6, 4]);
+      gCtx.beginPath();
+
+      // Orijinden başla
+      gCtx.moveTo(kenarSol, kenarUst + grafH);
+      for (var i = 0; i < sirali.length; i++) {
+        var px = kenarSol + (sirali[i].uzama / maxUzama) * grafW;
+        var py = kenarUst + grafH - (sirali[i].kuvvet / maxKuvvet) * grafH;
+        gCtx.lineTo(px, py);
+      }
+      gCtx.stroke();
+      gCtx.setLineDash([]);
+    }
+
+    // Noktalar
+    for (var i = 0; i < olcumler.length; i++) {
+      var px = kenarSol + (olcumler[i].uzama / maxUzama) * grafW;
+      var py = kenarUst + grafH - (olcumler[i].kuvvet / maxKuvvet) * grafH;
+
+      // Glow
+      gCtx.beginPath();
+      gCtx.arc(px, py, 10, 0, Math.PI * 2);
+      gCtx.fillStyle = 'rgba(72,201,176,0.15)';
+      gCtx.fill();
+
+      // Nokta
+      gCtx.beginPath();
+      gCtx.arc(px, py, 5, 0, Math.PI * 2);
+      gCtx.fillStyle = '#48c9b0';
+      gCtx.fill();
+      gCtx.strokeStyle = '#7ed6c4';
+      gCtx.lineWidth = 1.5;
+      gCtx.stroke();
+
+      // Değer etiketi
+      gCtx.fillStyle = '#d0d0d0';
+      gCtx.font = '9px Poppins, sans-serif';
+      gCtx.textAlign = 'center';
+      gCtx.fillText(olcumler[i].kuvvet.toFixed(1) + 'N', px, py - 12);
+    }
+  }
+
+  // Mevcut konum göstergesi (kırmızı nokta)
+  var kutle = parseInt(document.getElementById('sliderKutle').value);
+  var agirlik = (kutle / 1000) * 9.8;
+  var uzamaCm = (agirlik / yaySabiti) * 100;
+
+  if (kutle > 0) {
+    var cpx = kenarSol + (uzamaCm / maxUzama) * grafW;
+    var cpy = kenarUst + grafH - (agirlik / maxKuvvet) * grafH;
+
+    // Dikey/yatay referans çizgileri
+    gCtx.setLineDash([3, 3]);
+    gCtx.strokeStyle = 'rgba(248,81,73,0.25)';
+    gCtx.lineWidth = 1;
+    gCtx.beginPath();
+    gCtx.moveTo(cpx, kenarUst + grafH);
+    gCtx.lineTo(cpx, cpy);
+    gCtx.lineTo(kenarSol, cpy);
+    gCtx.stroke();
+    gCtx.setLineDash([]);
+
+    // Glow
+    gCtx.beginPath();
+    gCtx.arc(cpx, cpy, 12, 0, Math.PI * 2);
+    gCtx.fillStyle = 'rgba(248,81,73,0.12)';
+    gCtx.fill();
+
+    // Nokta (pulsating)
+    gCtx.beginPath();
+    gCtx.arc(cpx, cpy, 6, 0, Math.PI * 2);
+    gCtx.fillStyle = '#f85149';
+    gCtx.fill();
+    gCtx.strokeStyle = '#ff8888';
+    gCtx.lineWidth = 1.5;
+    gCtx.stroke();
+  }
+
+  // Boş durum mesajı
+  if (olcumler.length === 0) {
+    gCtx.fillStyle = 'rgba(139,148,158,0.4)';
+    gCtx.font = '11px Poppins, sans-serif';
+    gCtx.textAlign = 'center';
+    gCtx.fillText('Ölçüm eklemek için simülasyonu kullan ve "Ölçüm Ekle" butonuna bas', W / 2, kenarUst + grafH / 2);
+  }
+}
+
+// ── Ölçüm ekle ──
+function olcumEkle() {
+  var kutle = parseInt(document.getElementById('sliderKutle').value);
+  if (kutle <= 0) return;
+
+  var agirlik = (kutle / 1000) * 9.8;
+  var uzamaCm = (agirlik / yaySabiti) * 100;
+
+  // Aynı nokta zaten var mı kontrol et
+  var mevcut = olcumler.some(function(o) {
+    return Math.abs(o.uzama - uzamaCm) < 0.01 && Math.abs(o.kuvvet - agirlik) < 0.01;
+  });
+
+  if (!mevcut) {
+    olcumler.push({ kutle: kutle, kuvvet: agirlik, uzama: uzamaCm });
+    grafikCiz();
+  }
+}
+
+// ── Grafiği temizle ──
+function grafigiTemizle() {
+  olcumler = [];
+  grafikCiz();
+}
+
+// ── Sıfırla ──
+function dinamoSifirla() {
+  document.getElementById('sliderKutle').value = 50;
+  yaySabiti = 20;
+  document.querySelectorAll('.yay-btn').forEach(function(b) {
+    b.classList.remove('aktif');
+    if (b.getAttribute('data-k') === '20') b.classList.add('aktif');
+  });
+  hesaplaVeCiz();
+}
+
+// Slider ve yay değiştiğinde grafiği de güncelle
+var _orijinalHesapla = hesaplaVeCiz;
+hesaplaVeCiz = function() {
+  var kutle = parseInt(document.getElementById('sliderKutle').value);
+  document.getElementById('lblKutle').textContent = kutle + ' g';
+
+  var agirlik = (kutle / 1000) * 9.8;
+  var uzamaMetre = agirlik / yaySabiti;
+  var uzamaCm = uzamaMetre * 100;
+
+  document.getElementById('infoKutle').textContent = kutle + ' g';
+  document.getElementById('infoAgirlik').textContent = agirlik.toFixed(2) + ' N';
+  document.getElementById('infoUzama').textContent = uzamaCm.toFixed(1) + ' cm';
+  document.getElementById('infoK').textContent = yaySabiti + ' N/m';
+
+  hedefUzama = Math.min(uzamaCm * 12, 180);
+  if (!animFrameId) animasyonDongusu();
+
+  // Grafiği de güncelle (mevcut nokta göstergesi)
+  grafikCiz();
+};
+
+// ══════════════════════════════════════
+//  VERİ TABLOSU OTOMATİK HESAPLAMA
+// ══════════════════════════════════════
+function tabloHesapla(el) {
+  var satir = el.closest('tr');
+  var inputlar = satir.querySelectorAll('input');
+  var spanlar = satir.querySelectorAll('.hesaplanan');
+
+  var kutle = parseFloat(inputlar[0].value);
+  var uzamaCm = parseFloat(inputlar[1].value);
+
+  if (!isNaN(kutle) && kutle > 0) {
+    var agirlik = (kutle / 1000) * 9.8;
+    spanlar[0].textContent = agirlik.toFixed(2) + ' N';
+
+    if (!isNaN(uzamaCm) && uzamaCm > 0) {
+      var uzamaM = uzamaCm / 100;
+      var k = agirlik / uzamaM;
+      spanlar[1].textContent = k.toFixed(1) + ' N/m';
+    } else {
+      spanlar[1].textContent = '—';
+    }
+  } else {
+    spanlar[0].textContent = '—';
+    spanlar[1].textContent = '—';
+  }
+}
+</script>
+
+</body>
+</html>

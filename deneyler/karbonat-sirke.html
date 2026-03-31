@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karbonat ve Sirke Tepkimesi — DoğruLab</title>
+  <link rel="stylesheet" href="../assets/dogrulab.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    /* ── YATAY REAKSİYON SATIRI ── */
+    .rx-satir {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+
+    .rx-sol {
+      display: flex;
+      align-items: stretch;
+      flex-shrink: 0;
+    }
+
+    .reaktan-kart {
+      width: 148px;
+      flex-shrink: 0;
+      padding: 16px 12px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reaktan-kart.asit {
+      background: linear-gradient(160deg, rgba(248,81,73,0.13), rgba(248,81,73,0.04));
+      border: 1px solid rgba(248,81,73,0.35);
+      border-radius: 12px 0 0 12px;
+      animation: pulseAsit 3.5s infinite ease-in-out;
+    }
+
+    .reaktan-kart.baz {
+      background: linear-gradient(160deg, rgba(74,188,255,0.13), rgba(74,188,255,0.04));
+      border: 1px solid rgba(74,188,255,0.35);
+      border-left: none;
+      border-radius: 0 12px 12px 0;
+      animation: pulseBaz 3.5s infinite ease-in-out 1.75s;
+    }
+
+    .reaktan-kart::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+    .asit::before { background: radial-gradient(ellipse at 50% 0%, rgba(248,81,73,0.12), transparent 65%); }
+    .baz::before  { background: radial-gradient(ellipse at 50% 0%, rgba(74,188,255,0.12), transparent 65%); }
+
+    @keyframes pulseAsit {
+      0%,100% { box-shadow: 0 0 0 0 rgba(248,81,73,0); }
+      50%      { box-shadow: 0 0 16px 2px rgba(248,81,73,0.13); }
+    }
+    @keyframes pulseBaz {
+      0%,100% { box-shadow: 0 0 0 0 rgba(74,188,255,0); }
+      50%      { box-shadow: 0 0 16px 2px rgba(74,188,255,0.13); }
+    }
+
+    .reaktan-kart.tepkiyor { animation: sallan 0.55s ease-out !important; }
+    @keyframes sallan {
+      0%,100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+
+    .reaktan-emoji { font-size: 1.7rem; display: block; margin-bottom: 8px; }
+
+    .reaktan-tur {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 3px;
+    }
+    .asit .reaktan-tur { color: rgba(248,81,73,0.75); }
+    .baz  .reaktan-tur { color: rgba(74,188,255,0.75); }
+
+    .reaktan-formul {
+      font-size: 1.18rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .asit .reaktan-formul { color: #ff7b72; text-shadow: 0 0 16px rgba(248,81,73,0.4); }
+    .baz  .reaktan-formul { color: #6cc4f5; text-shadow: 0 0 16px rgba(74,188,255,0.4); }
+
+    .reaktan-isim {
+      font-size: 0.72rem;
+      color: var(--text2);
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+
+    .reaktan-bilgiler { display: flex; flex-direction: column; gap: 4px; }
+
+    .r-bilgi {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 7px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 5px;
+      font-size: 0.68rem;
+    }
+    .r-bilgi span { color: var(--text2); }
+    .asit .r-bilgi strong { color: #ff9c96; }
+    .baz  .r-bilgi strong { color: #90d4f9; }
+
+    /* + bölücü kart arası */
+    .rx-arti-kart {
+      width: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg3);
+      border-top: 1px solid var(--border2);
+      border-bottom: 1px solid var(--border2);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text2);
+      flex-shrink: 0;
+    }
+
+    /* Geçiş */
+    .rx-gecis {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 0 2px;
+    }
+    .rx-ok-cizgi {
+      height: 2px;
+      width: 14px;
+      background: linear-gradient(to right, var(--border2), transparent);
+    }
+
+    .tepkime-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(72,201,176,0.4);
+      background: rgba(72,201,176,0.08);
+      color: var(--teal);
+      font-family: inherit;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tepkime-btn:hover { background: rgba(72,201,176,0.18); box-shadow: 0 0 14px rgba(72,201,176,0.18); }
+    .tepkime-btn:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+
+    /* Ürünler - sağda açılır */
+    .rx-sag-dis {
+      overflow: hidden;
+      max-width: 0;
+      transition: max-width 0.6s cubic-bezier(0.34,1.1,0.64,1);
+      flex-shrink: 0;
+    }
+    .rx-sag-dis.gorunsun { max-width: 360px; }
+
+    .rx-sag {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding-left: 6px;
+      opacity: 0;
+      transition: opacity 0.35s ease 0.3s;
+    }
+    .rx-sag-dis.gorunsun .rx-sag { opacity: 1; }
+
+    .urun-kart {
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 9px;
+      min-width: 68px;
+      flex-shrink: 0;
+    }
+    .urun-kart.co2 { background: rgba(255,166,87,0.1);  border: 1px solid rgba(255,166,87,0.35); }
+    .urun-kart.su  { background: rgba(93,173,226,0.1);  border: 1px solid rgba(93,173,226,0.35); }
+    .urun-kart.tuz { background: rgba(72,201,176,0.1);  border: 1px solid rgba(72,201,176,0.35); }
+
+    .urun-formul { font-size: 0.95rem; font-weight: 700; margin-bottom: 3px; }
+    .co2 .urun-formul { color: var(--orange); }
+    .su  .urun-formul { color: var(--cyan); }
+    .tuz .urun-formul { color: var(--teal); }
+    .urun-isim { font-size: 0.62rem; color: var(--text2); margin-bottom: 2px; }
+    .urun-acik { font-size: 0.62rem; font-weight: 600; }
+    .co2 .urun-acik { color: var(--orange); }
+    .tuz .urun-acik { color: var(--teal); }
+    .urun-arti { color: var(--text2); font-size: 0.95rem; font-weight: 600; flex-shrink: 0; }
+
+    /* Flash */
+    .tepkime-flash {
+      position: fixed; inset: 0;
+      background: rgba(255,255,255,0.07);
+      pointer-events: none; z-index: 999;
+      animation: flashYok 0.4s ease-out forwards;
+    }
+    @keyframes flashYok { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+    /* ── ASİT-BAZ SKALASI ── */
+    .ab-panel {
+      display: grid;
+      grid-template-columns: 1fr 76px 1fr;
+      gap: 0 8px;
+      margin-bottom: 16px;
+    }
+
+    .ab-kolon-baslik {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid;
+      margin-bottom: 6px;
+    }
+    .ab-asitler .ab-kolon-baslik { color: var(--red);  border-color: var(--red); }
+    .ab-bazlar  .ab-kolon-baslik { color: #6cc4f5; border-color: #6cc4f5; text-align: right; }
+
+    .ab-orta {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding-top: 28px;
+    }
+    .ab-orta-label { font-size: 0.62rem; color: var(--text2); text-align: center; line-height: 1.3; }
+
+    .notr-chip {
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(86,211,100,0.1);
+      border: 1px solid rgba(86,211,100,0.3);
+      color: var(--green);
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      font-family: inherit;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+    .notr-chip:hover, .notr-chip.aktif {
+      background: rgba(86,211,100,0.2);
+      box-shadow: 0 0 10px rgba(86,211,100,0.15);
+    }
+
+    .ab-satir {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+    .ab-asitler .ab-satir { flex-direction: row; }
+    .ab-bazlar  .ab-satir { flex-direction: row-reverse; text-align: right; }
+
+    .ab-asitler .ab-satir:hover, .ab-asitler .ab-satir.aktif {
+      background: rgba(248,81,73,0.08); border-color: rgba(248,81,73,0.22);
+    }
+    .ab-bazlar .ab-satir:hover, .ab-bazlar .ab-satir.aktif {
+      background: rgba(74,188,255,0.08); border-color: rgba(74,188,255,0.22);
+    }
+
+    .ab-emoji { font-size: 1.25rem; flex-shrink: 0; }
+    .ab-satir-isim { font-size: 0.78rem; font-weight: 600; line-height: 1.2; }
+    .ab-asitler .ab-satir-isim { color: #ff9c96; }
+    .ab-bazlar  .ab-satir-isim { color: #90d4f9; }
+    .ab-satir-ph { font-size: 0.65rem; color: var(--text2); }
+
+    /* pH bar */
+    .ph-bar-wrap { position: relative; margin: 16px 0 4px; }
+    .ph-bar {
+      height: 14px;
+      border-radius: 7px;
+      background: linear-gradient(to right, #f85149 0%, #ffa657 20%, #ffd700 42%, #56d364 50%, #5dade2 68%, #4facfe 84%, #8957e5 100%);
+      border: 1px solid var(--border2);
+      position: relative;
+      overflow: visible;
+    }
+    .ph-isaretci {
+      position: absolute;
+      top: -5px;
+      width: 6px;
+      height: 24px;
+      background: white;
+      border-radius: 3px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.7);
+      transform: translateX(-50%);
+      transition: left 0.4s cubic-bezier(0.34,1.2,0.64,1);
+      left: 50%;
+    }
+    .ph-sayilar {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 0.6rem;
+      color: var(--text2);
+      padding: 0 3px;
+    }
+
+    .ph-secili-kart {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 12px;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      display: none;
+      animation: fadeUp 0.2s ease-out;
+    }
+    .ph-secili-kart.gorunsun { display: block; }
+
+    /* Mobil */
+    @media (max-width: 580px) {
+      .rx-satir { flex-wrap: wrap; overflow: visible; }
+      .rx-sol { width: 100%; }
+      .rx-gecis { flex-direction: row; padding: 6px 0; width: 100%; justify-content: center; }
+      .rx-ok-cizgi { width: 20px; height: 2px; background: var(--border2); }
+      .rx-sag-dis.gorunsun { max-width: 100%; width: 100%; }
+      .rx-sag { flex-wrap: wrap; justify-content: center; padding-left: 0; gap: 6px; }
+      .ab-panel { grid-template-columns: 1fr; }
+      .ab-orta { flex-direction: row; justify-content: flex-start; padding-top: 0; }
+      .ab-bazlar .ab-satir { flex-direction: row; text-align: left; }
+      .ab-bazlar .ab-kolon-baslik { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="../index.html">⚗️ DoğruLab</a>
+  <div class="deney-badge">Kimya · 9. Sınıf</div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <span class="hero-emoji">🫧</span>
+    <h1>Karbonat ve Sirke Tepkimesi</h1>
+    <p>İki sıradan madde bir araya gelince neden köpürür? Asit-baz tepkimesini adım adım keşfet.</p>
+    <div class="meta-row">
+      <span class="meta-chip" style="border-color:rgba(74,188,255,0.3);color:#90d4f9;background:rgba(74,188,255,0.08);">🧪 Kimya · 9. Sınıf</span>
+      <span class="meta-chip sure">⏱ 15 dk</span>
+      <span class="meta-chip zorluk">✦ Kolay</span>
+    </div>
+  </div>
+
+  <!-- REAKTİFLER -->
+  <section>
+    <div class="section-title"><span>⚗️</span> Reaktifler — Kim Kimdir?</div>
+
+    <div class="rx-satir">
+
+      <!-- Sol: Asit + Baz -->
+      <div class="rx-sol">
+        <div class="reaktan-kart asit" id="asitKart">
+          <span class="reaktan-emoji">🧪</span>
+          <div class="reaktan-tur">Zayıf Asit</div>
+          <div class="reaktan-formul">CH₃COOH</div>
+          <div class="reaktan-isim">Asetik Asit · <em>Sirke</em></div>
+          <div class="reaktan-bilgiler">
+            <div class="r-bilgi"><span>pH</span><strong>~2–3</strong></div>
+            <div class="r-bilgi"><span>Görünüm</span><strong>Şeffaf sıvı</strong></div>
+            <div class="r-bilgi"><span>Koku</span><strong>Ekşi, keskin</strong></div>
+          </div>
+        </div>
+
+        <div class="rx-arti-kart">+</div>
+
+        <div class="reaktan-kart baz" id="bazKart">
+          <span class="reaktan-emoji">🥄</span>
+          <div class="reaktan-tur">Zayıf Baz</div>
+          <div class="reaktan-formul">NaHCO₃</div>
+          <div class="reaktan-isim">Sodyum Bikarbonat · <em>Karbonat</em></div>
+          <div class="reaktan-bilgiler">
+            <div class="r-bilgi"><span>pH</span><strong>~8–9</strong></div>
+            <div class="r-bilgi"><span>Görünüm</span><strong>Beyaz toz</strong></div>
+            <div class="r-bilgi"><span>Koku</span><strong>Kokusuz</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Geçiş / Buton -->
+      <div class="rx-gecis">
+        <div class="rx-ok-cizgi"></div>
+        <button class="tepkime-btn" id="tepkimeBtnEl" onclick="tepkimeGoster()">⚡ Göster</button>
+        <div class="rx-ok-cizgi"></div>
+      </div>
+
+      <!-- Sağda: Ürünler (gizli → açılır) -->
+      <div class="rx-sag-dis" id="rxSagDis">
+        <div class="rx-sag">
+          <div class="urun-kart co2">
+            <div class="urun-formul">CO₂ ↑</div>
+            <div class="urun-isim">Karbondioksit</div>
+            <div class="urun-acik">💨 Kabarcıklar!</div>
+          </div>
+          <div class="urun-arti">+</div>
+          <div class="urun-kart su">
+            <div class="urun-formul">H₂O</div>
+            <div class="urun-isim">Su</div>
+          </div>
+          <div class="urun-arti">+</div>
+          <div class="urun-kart tuz">
+            <div class="urun-formul">NaCH₃COO</div>
+            <div class="urun-isim">Sodyum Asetat</div>
+            <div class="urun-acik">🧂 Tuz</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note-box yesil">
+      <strong>🟢 Kimyasal Değişim Kanıtı</strong>
+      CO₂ gazının kabarcıklar hâlinde çıkması kimyasal dönüşüm kanıtıdır. Renk, koku ve madde yapısı değişir.
+    </div>
+    <div class="note-box kirmizi">
+      <strong>⚠️ Güvenlik</strong>
+      Zararsız maddelerdir. Yine de gözlere temas ettirmeyin, ağıza almayın.
+    </div>
+  </section>
+
+  <!-- SİMÜLASYON -->
+  <section>
+    <div class="section-title"><span>🔬</span> İnteraktif Simülasyon</div>
+    <div class="sim-container">
+      <div class="sim-canvas-wrap">
+        <canvas id="tepkimeCanvas" height="320"></canvas>
+      </div>
+      <div class="sim-controls">
+        <div class="sim-info-row">
+          <div class="info-card"><div class="label">Adım</div><div class="value" id="infoAdim">Başlangıç</div></div>
+          <div class="info-card"><div class="label">pH Tahmini</div><div class="value" id="infoPH" style="color:var(--text2)">—</div></div>
+          <div class="info-card"><div class="label">Gaz Oluşumu</div><div class="value" id="infoGaz" style="color:var(--text2)">Yok</div></div>
+          <div class="info-card"><div class="label">Renk</div><div class="value" id="infoRenk" style="color:var(--text2)">—</div></div>
+        </div>
+        <div>
+          <div style="font-size:0.78rem;color:var(--text2);margin-bottom:6px;">pH İndikatörü</div>
+          <div style="position:relative;height:16px;border-radius:8px;overflow:hidden;background:linear-gradient(to right,#f85149,#ffa657,#ffd700,#56d364,#5dade2,#8957e5);border:1px solid var(--border2);">
+            <div id="phIsaretci" style="position:absolute;top:0;width:4px;height:100%;background:white;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,0.8);transition:left 0.8s ease;left:0%;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text2);margin-top:3px;">
+            <span>Asit (pH 0)</span><span>Nötr (pH 7)</span><span>Baz (pH 14)</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary"   id="btnAdim1" onclick="simAdim(1)">1. Sirke Ekle</button>
+          <button class="btn btn-secondary" id="btnAdim2" onclick="simAdim(2)" disabled>2. Boya Ekle</button>
+          <button class="btn btn-secondary" id="btnAdim3" onclick="simAdim(3)" disabled>3. Karbonat Ekle</button>
+          <button class="btn btn-secondary" id="btnAdim4" onclick="simAdim(4)" disabled>4. Gözlemle</button>
+          <button class="btn btn-danger"    onclick="simSifirla()">↺</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DENEY ADIMLARI -->
+  <section>
+    <div class="section-title"><span>🧪</span> Deney Adımları</div>
+    <ul class="adimlar-list">
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">1</div><div class="adim-check"></div>
+        <div class="adim-text">Şeffaf bardağa <strong>yarım çay bardağı sirke</strong> koy. Tepsi üzerine yerleştir.</div>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">2</div><div class="adim-check"></div>
+        <div class="adim-text">Sirkeye <strong>2–3 damla kırmızı gıda boyası</strong> ekle ve hafifçe karıştır.</div>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">3</div><div class="adim-check"></div>
+        <div class="adim-text">Bir çay kaşığı <strong>karbonat</strong> hazırla. Miktarı şeffaf poşette tartabilirsin.</div>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">4</div><div class="adim-check"></div>
+        <div class="adim-text">Karbonatu sirkeye <strong>yavaşça dök</strong>. Hemen gözlemle: kabarcıklar, köpürme, renk değişimi.</div>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">5</div><div class="adim-check"></div>
+        <div class="adim-text">Köpürme durana kadar bekle. CO₂ çıkışını gözlemle ve tabloya kaydet.</div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- MALZEMELER -->
+  <section>
+    <div class="section-title"><span>🧰</span> Malzemeler</div>
+    <div class="malzeme-grid">
+      <div class="malzeme-item">Şeffaf bardak (1 adet, cam)</div>
+      <div class="malzeme-item">Beyaz sirke (50 mL şişe)</div>
+      <div class="malzeme-item">Karbonat (7×10 cm şeffaf poşet)</div>
+      <div class="malzeme-item">Kırmızı gıda boyası (50 mL)</div>
+      <div class="malzeme-item">Plastik küçük kaşık</div>
+      <div class="malzeme-item">Tepsi (standart lokma kabı)</div>
+    </div>
+  </section>
+
+  <!-- GÖZLEM DEFTERİ -->
+  <section>
+    <div class="section-title"><span>📝</span> Gözlem Defteri</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+
+      <div class="card" style="padding:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="background:linear-gradient(135deg,var(--cyan),var(--teal));color:#070b16;font-weight:700;font-size:0.75rem;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;">1</span>
+          <span style="font-weight:600;color:var(--h2);font-size:0.88rem;">Sirke Eklendi</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="form-row" style="margin:0;"><div class="form-label">Gözlemlenen Değişiklik</div><input type="text" placeholder="Ne gözlemledin?"></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Renk</div><select style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;width:100%;"><option>Renksiz / Sarımsı</option><option>Diğer</option></select></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Kabarcık var mı?</div><select style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;width:100%;"><option>Hayır</option><option>Evet</option></select></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Notlar</div><input type="text" placeholder="Ek gözlem..."></div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="background:linear-gradient(135deg,var(--cyan),var(--teal));color:#070b16;font-weight:700;font-size:0.75rem;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;">2</span>
+          <span style="font-weight:600;color:var(--h2);font-size:0.88rem;">Boya Eklendi</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="form-row" style="margin:0;"><div class="form-label">Gözlemlenen Değişiklik</div><input type="text" placeholder="Ne gözlemledin?"></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Renk</div><select style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;width:100%;"><option>Kırmızı</option><option>Pembe</option><option>Diğer</option></select></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Kabarcık var mı?</div><select style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;width:100%;"><option>Hayır</option><option>Evet</option></select></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Notlar</div><input type="text" placeholder="Ek gözlem..."></div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="background:linear-gradient(135deg,var(--orange),var(--red));color:#070b16;font-weight:700;font-size:0.75rem;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</span>
+          <span style="font-weight:600;color:var(--orange);font-size:0.88rem;">Karbonat Eklendi — Tepkime!</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="form-row" style="margin:0;"><div class="form-label">Gözlemlenen Değişiklik</div><input type="text" placeholder="Ne oldu? Köpürme, ses, sıcaklık..."></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Renk</div><select style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;width:100%;"><option>Açık turuncu</option><option>Renksiz</option><option>Diğer</option></select></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Kabarcık var mı?</div><select style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;width:100%;"><option>Evet — yoğun köpürme</option><option>Evet — az kabarcık</option><option>Hayır</option></select></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Notlar</div><input type="text" placeholder="CO₂ gazı gözlemledin mi?"></div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="background:var(--border2);color:var(--text);font-weight:700;font-size:0.75rem;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;">4</span>
+          <span style="font-weight:600;color:var(--text2);font-size:0.88rem;">Tepkime Bitti</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="form-row" style="margin:0;"><div class="form-label">Gözlemlenen Değişiklik</div><input type="text" placeholder="Son durum nedir?"></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Renk</div><select style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;width:100%;"><option>Sarımsı</option><option>Kırmızı</option><option>Diğer</option></select></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Kabarcık durdu mu?</div><select style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;width:100%;"><option>Evet — durdu</option><option>Devam ediyor</option></select></div>
+          <div class="form-row" style="margin:0;"><div class="form-label">Notlar</div><input type="text" placeholder="Ek gözlem..."></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="card">
+      <div class="form-row">
+        <div class="form-label">Sonuç ve Yorumlarım</div>
+        <textarea placeholder="Neden kabarcıklar oluştu? CO₂ neden açığa çıktı? pH neden değişti? Kendi cümlelerinle açıkla..."></textarea>
+      </div>
+      <button class="kaydet-btn" onclick="kaydet()">💾 Gözlem Raporunu Kaydet</button>
+    </div>
+  </section>
+
+  <!-- ASİT-BAZ SKALASI -->
+  <section>
+    <div class="section-title"><span>📊</span> Asit — Baz Skalası</div>
+    <div class="card">
+
+      <div class="ab-panel">
+
+        <!-- Asitler -->
+        <div class="ab-kolon ab-asitler">
+          <div class="ab-kolon-baslik">🔴 Asitler</div>
+
+          <div class="ab-satir" onclick="ornekSec(this)" data-ph="1" data-ad="Mide Asidi" data-tip="asit"
+               data-acik="Hidroklorik asit (HCl). Midemizde yiyecekleri sindirmek için üretilir. Çok güçlü bir asittir — mideyi koruyucu bir tabaka sayesinde zarar vermez!">
+            <span class="ab-emoji">🫁</span>
+            <div><div class="ab-satir-isim">Mide Asidi</div><div class="ab-satir-ph">pH ~1</div></div>
+          </div>
+
+          <div class="ab-satir" onclick="ornekSec(this)" data-ph="2" data-ad="Limon Suyu" data-tip="asit"
+               data-acik="Sitrik asit içerir. Tadı ekşidir. Mutfakta ve temizlikte yaygın kullanılır. Zararsızdır.">
+            <span class="ab-emoji">🍋</span>
+            <div><div class="ab-satir-isim">Limon Suyu</div><div class="ab-satir-ph">pH ~2</div></div>
+          </div>
+
+          <div class="ab-satir aktif" onclick="ornekSec(this)" data-ph="3" data-ad="Sirke (CH₃COOH) ← Bu Deney!" data-tip="asit"
+               data-acik="Asetik asit içerir. Bu deneyde kullandığımız madde! Yiyeceklerde yaygın, hafif asit. Karbonata eklenince CO₂ gazı oluşturur.">
+            <span class="ab-emoji">🧪</span>
+            <div><div class="ab-satir-isim">Sirke ← Bu Deney!</div><div class="ab-satir-ph">pH ~3</div></div>
+          </div>
+
+          <div class="ab-satir" onclick="ornekSec(this)" data-ph="5" data-ad="Kahve" data-tip="asit"
+               data-acik="Hafif asidik. Klorojenik asit içerir. Tadı ekşimsidir. Mideye zararlı değildir, ancak hassas kişiler dikkat etmeli.">
+            <span class="ab-emoji">☕</span>
+            <div><div class="ab-satir-isim">Kahve</div><div class="ab-satir-ph">pH ~5</div></div>
+          </div>
+        </div>
+
+        <!-- Orta: Nötr -->
+        <div class="ab-orta">
+          <div class="ab-orta-label">Nötr</div>
+          <button class="notr-chip" onclick="ornekSec(this)" data-ph="7" data-ad="Saf Su" data-tip="notr"
+                  data-acik="Tamamen nötr. Ne asit ne baz. pH 7 bilimsel referans noktasıdır. Saf suyun iletkenliği çok düşüktür.">💧<br>pH 7<br>Saf Su</button>
+        </div>
+
+        <!-- Bazlar -->
+        <div class="ab-kolon ab-bazlar">
+          <div class="ab-kolon-baslik">🔵 Bazlar</div>
+
+          <div class="ab-satir aktif" onclick="ornekSec(this)" data-ph="8.5" data-ad="Karbonat Çözeltisi (NaHCO₃) ← Bu Deney!" data-tip="baz"
+               data-acik="Sodyum bikarbonat çözeltisi. Bu deneyde kullandığımız madde! Kabartma tozunda da bulunur. Asitle tepkimeye girerek CO₂ üretir.">
+            <div><div class="ab-satir-isim">Karbonat ← Bu Deney!</div><div class="ab-satir-ph">pH ~8.5</div></div>
+            <span class="ab-emoji">🥄</span>
+          </div>
+
+          <div class="ab-satir" onclick="ornekSec(this)" data-ph="9.5" data-ad="El Sabunu" data-tip="baz"
+               data-acik="Yağ asitlerinin tuzlarından yapılır. Hafif baz özelliklidir. Cilde nazik etki gösterir, dermatolog testlidir.">
+            <div><div class="ab-satir-isim">El Sabunu</div><div class="ab-satir-ph">pH ~9.5</div></div>
+            <span class="ab-emoji">🧼</span>
+          </div>
+
+          <div class="ab-satir" onclick="ornekSec(this)" data-ph="11.5" data-ad="Çamaşır Sodası (Na₂CO₃)" data-tip="baz"
+               data-acik="Sodyum karbonat. Kuvvetli temizleyici. Yağ ve kiri etkili çözer. Cilt temasından kaçınılmalı, eldiven önerilir.">
+            <div><div class="ab-satir-isim">Çamaşır Sodası</div><div class="ab-satir-ph">pH ~11.5</div></div>
+            <span class="ab-emoji">🧺</span>
+          </div>
+
+          <div class="ab-satir" onclick="ornekSec(this)" data-ph="13" data-ad="Çamaşır Suyu (NaOCl)" data-tip="baz"
+               data-acik="Sodyum hipoklorit çözeltisi. Güçlü baz ve dezenfektan. Cilt, göz ve solunum yolu için tehlikelidir. Asit ile asla karıştırılmamalı!">
+            <div><div class="ab-satir-isim">Çamaşır Suyu</div><div class="ab-satir-ph">pH ~13</div></div>
+            <span class="ab-emoji">🫧</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- pH Çubuğu -->
+      <div class="ph-bar-wrap">
+        <div class="ph-bar">
+          <div class="ph-isaretci" id="phBarIsaretci"></div>
+        </div>
+        <div class="ph-sayilar">
+          <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span>
+          <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>
+          <span>10</span><span>11</span><span>12</span><span>13</span><span>14</span>
+        </div>
+      </div>
+
+      <!-- Seçilen örnek bilgi kartı -->
+      <div class="ph-secili-kart" id="phSeciliKart">
+        <strong id="phSeciliAd" style="color:var(--h3)"></strong><br>
+        <span id="phSeciliAcik" style="color:var(--text2);font-size:0.8rem;"></span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- QR KOD -->
+  <section>
+    <div class="section-title"><span>📱</span> QR Kodu</div>
+    <div class="card">
+      <div class="qr-section">
+        <div id="qrcode"></div>
+        <div class="qr-info">
+          <h3>Bu deneyi paylaş</h3>
+          <p>QR kodu tarayarak bu sayfaya doğrudan erişilebilir. Öğretmenin tahtaya yansıtabilir.</p>
+          <p style="margin-top:8px;color:var(--cyan);font-size:0.75rem;">⚡ Çevrimdışı çalışır · Uygulama gerekmez</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="../assets/dogrulab.js"></script>
+<script>
+
+  function tepkimeGoster() {
+    var asit = document.getElementById('asitKart');
+    var baz  = document.getElementById('bazKart');
+    var btn  = document.getElementById('tepkimeBtnEl');
+    var sag  = document.getElementById('rxSagDis');
+
+    asit.classList.add('tepkiyor');
+    baz.classList.add('tepkiyor');
+
+    var flash = document.createElement('div');
+    flash.className = 'tepkime-flash';
+    document.body.appendChild(flash);
+    setTimeout(function() { if (flash.parentNode) flash.remove(); }, 420);
+
+    setTimeout(function() {
+      asit.classList.remove('tepkiyor');
+      baz.classList.remove('tepkiyor');
+      sag.classList.add('gorunsun');
+      btn.textContent = '✓ Gösterildi';
+      btn.disabled = true;
+    }, 560);
+  }
+
+  var aktifOrnek = null;
+  function ornekSec(el) {
+    if (aktifOrnek) aktifOrnek.classList.remove('aktif');
+    aktifOrnek = el;
+    el.classList.add('aktif');
+
+    var ph   = parseFloat(el.dataset.ph);
+    var ad   = el.dataset.ad;
+    var acik = el.dataset.acik;
+    var tip  = el.dataset.tip;
+
+    document.getElementById('phBarIsaretci').style.left = 'calc(' + (ph / 14 * 100) + '% - 3px)';
+
+    var kart = document.getElementById('phSeciliKart');
+    document.getElementById('phSeciliAd').textContent  = ad + ' — pH ' + ph;
+    document.getElementById('phSeciliAcik').textContent = acik;
+    kart.classList.add('gorunsun');
+
+    var bg, bd;
+    if (tip === 'asit') { bg = 'rgba(248,81,73,0.07)';  bd = 'rgba(248,81,73,0.25)'; }
+    else if (tip === 'baz') { bg = 'rgba(74,188,255,0.07)'; bd = 'rgba(74,188,255,0.25)'; }
+    else                { bg = 'rgba(86,211,100,0.07)'; bd = 'rgba(86,211,100,0.25)'; }
+    kart.style.background   = bg;
+    kart.style.borderColor  = bd;
+  }
+
+  var mevcutAdim = 0, animId = null, kabarciklar = [];
+  var renk = {r:0,g:0,b:0,a:0}, hedefRenk = {r:0,g:0,b:0,a:0};
+  var siviyuk = 0, hedefSivi = 0, kopuk = 0, hedefKopuk = 0;
+  var kopukDaireleri = (function() { var a=[]; for(var i=0;i<40;i++) a.push({ox:Math.random(),oy:Math.random(),r:3+Math.random()*5}); return a; })();
+  var canvas, ctx, W, H, BX, BY, BW, BH;
+
+  window.addEventListener('load', function() {
+    canvas = document.getElementById('tepkimeCanvas');
+    ctx = canvas.getContext('2d');
+    boyutla(); hesapla();
+    animDongusu();
+    window.addEventListener('resize', function() { boyutla(); hesapla(); });
+    // Varsayılan örnek
+    var ilkOrnek = document.querySelector('.ab-satir.aktif');
+    if (ilkOrnek) ornekSec(ilkOrnek);
+  });
+
+  function boyutla() { W = canvas.offsetWidth; H = 320; canvas.width = W; canvas.height = H; }
+  function hesapla() { BW = Math.min(200, W*0.42); BH = 180; BX = W/2-BW/2; BY = H/2-BH/2+12; }
+
+  function kabEkle(n) {
+    for (var i=0; i<n; i++) {
+      kabarciklar.push({ x: BX+10+Math.random()*(BW-20), y: BY+BH-10,
+        r: 2+Math.random()*5, hiz: 0.5+Math.random()*1.5,
+        a: 0.55+Math.random()*0.45, w: Math.random()*Math.PI*2, ws: 0.03+Math.random()*0.04 });
+    }
+  }
+
+  function kabGuncelle() {
+    var sinir = BY+BH-siviyuk;
+    kabarciklar = kabarciklar.filter(function(k) {
+      k.y -= k.hiz; k.w += k.ws; k.x += Math.sin(k.w)*0.5;
+      if (k.x < BX+k.r) k.x = BX+k.r;
+      if (k.x > BX+BW-k.r) k.x = BX+BW-k.r;
+      return k.y > sinir && k.y > BY;
+    });
+  }
+
+  function lerp(a, b) {
+    a.r+=(b.r-a.r)*0.05; a.g+=(b.g-a.g)*0.05;
+    a.b+=(b.b-a.b)*0.05; a.a+=(b.a-a.a)*0.05;
+  }
+
+  function ciz() {
+    ctx.clearRect(0,0,W,H);
+
+    // Arka plan (gradyan)
+    var bg=ctx.createRadialGradient(W/2,H/2,40,W/2,H/2,W*0.6);
+    bg.addColorStop(0,'#101828');
+    bg.addColorStop(1,'#0a0f1e');
+    ctx.fillStyle=bg;
+    ctx.fillRect(0,0,W,H);
+
+    lerp(renk, hedefRenk);
+    siviyuk += (hedefSivi-siviyuk)*0.04;
+    kopuk   += (hedefKopuk-kopuk)*0.04;
+
+    var bx=BX, by=BY, bw=BW, bh=BH;
+    var rad=10; // bardak köşe yuvarlaklığı
+
+    // Masa/zemin çizgisi
+    ctx.fillStyle='rgba(93,173,226,0.05)';
+    ctx.fillRect(bx-40,by+bh+2,bw+80,4);
+
+    // Bardak gölgesi
+    ctx.save();
+    var gs=ctx.createRadialGradient(W/2,by+bh+6,10,W/2,by+bh+6,bw*0.7);
+    gs.addColorStop(0,'rgba(0,0,0,0.2)');
+    gs.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gs;
+    ctx.beginPath();
+    ctx.ellipse(W/2,by+bh+6,bw*0.55,6,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // Sıvı dolum
+    if (siviyuk > 1) {
+      var sy = by+bh-siviyuk;
+      ctx.save();
+      // Bardak iç alanına kırp
+      ctx.beginPath();
+      ctx.moveTo(bx+rad,sy);
+      ctx.lineTo(bx+bw-rad,sy);
+      ctx.arcTo(bx+bw,sy,bx+bw,sy+rad,rad*0.3);
+      ctx.lineTo(bx+bw-2,by+bh-rad);
+      ctx.arcTo(bx+bw-2,by+bh,bx+bw-rad-2,by+bh,rad);
+      ctx.lineTo(bx+rad+2,by+bh);
+      ctx.arcTo(bx+2,by+bh,bx+2,by+bh-rad,rad);
+      ctx.lineTo(bx+2,sy+rad*0.3);
+      ctx.closePath();
+      ctx.clip();
+
+      // Sıvı gradyan (üstten alta yoğunlaşır)
+      var sGrad=ctx.createLinearGradient(bx,sy,bx,by+bh);
+      var r2=Math.round(renk.r), g2=Math.round(renk.g), b2=Math.round(renk.b), a2=renk.a;
+      sGrad.addColorStop(0,'rgba('+r2+','+g2+','+b2+','+(a2*0.6)+')');
+      sGrad.addColorStop(0.4,'rgba('+r2+','+g2+','+b2+','+a2+')');
+      sGrad.addColorStop(1,'rgba('+Math.max(0,r2-30)+','+Math.max(0,g2-30)+','+Math.max(0,b2-30)+','+(a2*1.1)+')');
+      ctx.fillStyle=sGrad;
+      ctx.fillRect(bx,sy,bw,bh);
+
+      // Sıvı yüzey ışıltısı
+      ctx.fillStyle='rgba(255,255,255,0.08)';
+      ctx.fillRect(bx+6,sy,bw-12,3);
+
+      // Sıvı iç yansıma (sol kenar)
+      var yGrad=ctx.createLinearGradient(bx,sy,bx+bw*0.15,sy);
+      yGrad.addColorStop(0,'rgba(255,255,255,0.1)');
+      yGrad.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=yGrad;
+      ctx.fillRect(bx,sy,bw*0.15,bh);
+
+      ctx.restore();
+    }
+
+    // Kabarcıklar (sıvı içinde)
+    kabarciklar.forEach(function(k) {
+      ctx.beginPath(); ctx.arc(k.x,k.y,k.r,0,Math.PI*2);
+      // Parıltılı kabarcık
+      var kGrad=ctx.createRadialGradient(k.x-k.r*0.3,k.y-k.r*0.3,0,k.x,k.y,k.r);
+      kGrad.addColorStop(0,'rgba(255,255,255,'+(k.a*0.5)+')');
+      kGrad.addColorStop(0.7,'rgba(200,230,255,'+(k.a*0.15)+')');
+      kGrad.addColorStop(1,'rgba(180,220,255,'+(k.a*0.05)+')');
+      ctx.fillStyle=kGrad;
+      ctx.fill();
+      ctx.strokeStyle='rgba(220,240,255,'+(k.a*0.6)+')';
+      ctx.lineWidth=0.8;
+      ctx.stroke();
+    });
+
+    // Köpük (sıvı yüzeyinde)
+    if (kopuk > 1) {
+      var ky = by+bh-siviyuk;
+      for (var i=0; i<kopukDaireleri.length; i++) {
+        var fd=kopukDaireleri[i];
+        var fx=bx+8+fd.ox*(bw-16), fy=ky-fd.oy*kopuk*0.5, fr=fd.r*0.8;
+        if (fr<=kopuk/3 && fx>bx+fr && fx<bx+bw-fr) {
+          var fGrad=ctx.createRadialGradient(fx-fr*0.2,fy-fr*0.2,0,fx,fy,fr);
+          fGrad.addColorStop(0,'rgba(255,255,255,0.18)');
+          fGrad.addColorStop(1,'rgba(255,255,255,0.04)');
+          ctx.beginPath(); ctx.arc(fx,fy,fr,0,Math.PI*2);
+          ctx.fillStyle=fGrad; ctx.fill();
+          ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=0.5; ctx.stroke();
+        }
+      }
+    }
+
+    // === BARDAK ÇİZİMİ (cam efekti) ===
+    // Ana cam çerçeve
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(bx+rad,by);
+    ctx.lineTo(bx+bw-rad,by);
+    ctx.arcTo(bx+bw,by,bx+bw,by+rad,rad);
+    ctx.lineTo(bx+bw,by+bh-rad);
+    ctx.arcTo(bx+bw,by+bh,bx+bw-rad,by+bh,rad);
+    ctx.lineTo(bx+rad,by+bh);
+    ctx.arcTo(bx,by+bh,bx,by+bh-rad,rad);
+    ctx.lineTo(bx,by+rad);
+    ctx.arcTo(bx,by,bx+rad,by,rad);
+    ctx.closePath();
+    ctx.strokeStyle='rgba(160,200,230,0.45)';
+    ctx.lineWidth=2.5;
+    ctx.stroke();
+
+    // Cam kenar ışıltısı (sol)
+    ctx.beginPath();
+    ctx.moveTo(bx+2,by+rad+10);
+    ctx.lineTo(bx+2,by+bh-rad);
+    ctx.strokeStyle='rgba(180,220,255,0.15)';
+    ctx.lineWidth=4;
+    ctx.stroke();
+
+    // Cam kenar ışıltısı (sağ)
+    ctx.beginPath();
+    ctx.moveTo(bx+bw-1,by+rad+10);
+    ctx.lineTo(bx+bw-1,by+bh-rad);
+    ctx.strokeStyle='rgba(180,220,255,0.06)';
+    ctx.lineWidth=2;
+    ctx.stroke();
+
+    // Cam parlama (sol üst)
+    var pGrad=ctx.createLinearGradient(bx,by,bx+bw*0.12,by+bh*0.7);
+    pGrad.addColorStop(0,'rgba(200,230,255,0.12)');
+    pGrad.addColorStop(1,'rgba(200,230,255,0)');
+    ctx.fillStyle=pGrad;
+    ctx.fillRect(bx+3,by+rad,bw*0.1,bh*0.6);
+
+    // Bardak ağzı (üst kenar çizgisi - daha belirgin)
+    ctx.beginPath();
+    ctx.moveTo(bx-3,by);
+    ctx.lineTo(bx+bw+3,by);
+    ctx.strokeStyle='rgba(160,200,230,0.5)';
+    ctx.lineWidth=2;
+    ctx.stroke();
+    ctx.restore();
+
+    // Bardak etiketi
+    ctx.fillStyle='rgba(160,200,230,0.35)';
+    ctx.font='500 10px Poppins,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('Şeffaf Bardak',W/2,by+bh+22);
+
+    // Durum yazısı (üstte)
+    var yazilar=['','Sirke ekleniyor... (CH₃COOH)','Gıda boyası ekleniyor...','Karbonat eklendi — CO₂↑ Tepkime!','CO₂ gazı çıkışı gözlemleniyor...'];
+    if (mevcutAdim > 0) {
+      ctx.fillStyle = mevcutAdim===3 ? 'rgba(255,166,87,0.9)' : 'rgba(72,201,176,0.8)';
+      ctx.font='600 12px Poppins,sans-serif'; ctx.textAlign='center';
+      ctx.fillText(yazilar[mevcutAdim],W/2,22);
+    }
+
+    // CO₂ gaz göstergesi
+    if (mevcutAdim>=3 && kabarciklar.length>0) {
+      ctx.fillStyle='rgba(255,166,87,0.6)';
+      ctx.font='600 10px Poppins,sans-serif';
+      ctx.textAlign='left';
+      var co2X=bx+bw+12;
+      // Yükselen CO₂ animasyonu
+      var co2Off=Math.sin(Date.now()*0.003)*3;
+      ctx.fillText('↑ CO₂',co2X,by+bh*0.35+co2Off);
+      ctx.fillText('↑ CO₂',co2X,by+bh*0.6-co2Off);
+      ctx.globalAlpha=0.3;
+      ctx.fillText('↑ CO₂',co2X,by+bh*0.1+co2Off*0.5);
+      ctx.globalAlpha=1;
+    }
+  }
+
+  function animDongusu() {
+    kabGuncelle(); ciz();
+    if (mevcutAdim===3 && Math.random()<0.28) kabEkle(1+Math.floor(Math.random()*3));
+    else if (mevcutAdim===4 && Math.random()<0.07) kabEkle(1);
+    animId = requestAnimationFrame(animDongusu);
+  }
+
+  function set(id,v,c) { var e=document.getElementById(id); e.textContent=v; if(c) e.style.color=c; }
+  function ph(v)       { document.getElementById('phIsaretci').style.left='calc('+(v/14*100)+'% - 2px)'; }
+  function unlock(n)   { var b=document.getElementById('btnAdim'+n); b.disabled=false; b.className='btn btn-primary'; }
+
+  function simAdim(a) {
+    mevcutAdim=a;
+    if (a===1) {
+      hedefRenk={r:255,g:252,b:185,a:0.45}; hedefSivi=80; hedefKopuk=0; kabarciklar=[];
+      set('infoAdim','Sirke Eklendi'); set('infoPH','~3','var(--red)');
+      set('infoGaz','Yok','var(--text2)'); set('infoRenk','Sarımsı','#ffd700');
+      ph(3); unlock(2);
+    } else if (a===2) {
+      hedefRenk={r:200,g:28,b:38,a:0.7};
+      set('infoAdim','Boya Eklendi'); set('infoRenk','Kırmızı','#f85149'); unlock(3);
+    } else if (a===3) {
+      hedefRenk={r:218,g:98,b:58,a:0.65}; hedefSivi=110; hedefKopuk=35;
+      set('infoAdim','Tepkime Başladı!'); set('infoPH','~5','var(--orange)');
+      set('infoGaz','CO₂ ↑↑↑','var(--orange)'); set('infoRenk','Açık Turuncu','var(--orange)');
+      ph(5); unlock(4);
+      for (var i=0;i<40;i++) { (function(d){ setTimeout(function(){ kabEkle(3); },d); })(i*50); }
+    } else if (a===4) {
+      hedefRenk={r:200,g:162,b:80,a:0.42}; hedefKopuk=8;
+      set('infoAdim','Tepkime Yavaşladı'); set('infoPH','~6.5','#ffd700');
+      set('infoGaz','CO₂ azalıyor','#ffd700'); set('infoRenk','Sarımsı','#ffd700');
+      ph(6.5);
+    }
+  }
+
+  function simSifirla() {
+    mevcutAdim=0; if(animId){cancelAnimationFrame(animId);animId=null;}
+    kabarciklar=[]; renk={r:0,g:0,b:0,a:0}; hedefRenk={r:0,g:0,b:0,a:0};
+    siviyuk=0; hedefSivi=0; kopuk=0; hedefKopuk=0;
+    set('infoAdim','Başlangıç'); set('infoPH','—','var(--text2)');
+    set('infoGaz','Yok','var(--text2)'); set('infoRenk','—','var(--text2)');
+    ph(0);
+    ['btnAdim1','btnAdim2','btnAdim3','btnAdim4'].forEach(function(id,i){
+      var b=document.getElementById(id); b.disabled=i>0; b.className=i===0?'btn btn-primary':'btn btn-secondary';
+    });
+  }
+</script>
+</body>
+</html>

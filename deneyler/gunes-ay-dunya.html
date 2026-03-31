@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Güneş, Ay ve Dünya | DoğruLab</title>
+  <link rel="stylesheet" href="../assets/dogrulab.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    canvas { display:block; width:100%; }
+    .canvas-sarmal { background:#030510; border-radius:14px; border:1px solid var(--border); overflow:hidden; position:relative; margin-bottom:20px; }
+    .canvas-not { position:absolute; bottom:8px; right:12px; font-size:0.62rem; color:rgba(160,160,180,0.4); font-style:italic; }
+
+    /* Keşfet Kutuları */
+    .kesfet { background:var(--bg3); border:1px solid var(--border2); border-radius:10px; margin-bottom:8px; cursor:pointer; overflow:hidden; transition:border-color 0.3s; }
+    .kesfet:hover { border-color:var(--border); }
+    .kesfet-baslik { padding:12px 16px; display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; font-weight:600; color:var(--h2); }
+    .kesfet-ok { transition:transform 0.3s; color:var(--text2); font-size:0.75rem; flex-shrink:0; }
+    .kesfet.acik .kesfet-ok { transform:rotate(180deg); }
+    .kesfet-icerik { max-height:0; overflow:hidden; transition:max-height 0.4s ease; padding:0 16px; font-size:0.82rem; color:var(--text2); line-height:1.8; }
+    .kesfet.acik .kesfet-icerik { max-height:500px; padding:0 16px 14px; }
+    .kesfet-icerik strong { color:var(--teal); }
+
+    /* Boyut Karşılaştırma Barı */
+    .boyut-bar { display:flex; align-items:center; gap:10px; margin:8px 0; }
+    .boyut-bar-etiket { font-size:0.72rem; color:var(--text2); min-width:56px; text-align:right; }
+    .boyut-bar-dis { flex:1; height:10px; background:var(--border2); border-radius:5px; overflow:hidden; }
+    .boyut-bar-ic { height:100%; border-radius:5px; transition:width 0.6s ease; }
+
+    /* Ay Evreleri */
+    .ay-hook { text-align:center; margin-bottom:24px; }
+    .ay-hook .hook-baslik { font-size:1.1rem; font-weight:700; color:var(--h1); margin-bottom:6px; }
+    .ay-hook .hook-alt { font-size:0.85rem; color:var(--text2); max-width:520px; margin:0 auto; line-height:1.7; }
+    .evre-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+    .evre-kart { background:var(--bg3); border:1px solid var(--border2); border-radius:12px; padding:12px 8px; text-align:center; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .evre-kart:hover { border-color:rgba(72,201,176,0.4); background:rgba(72,201,176,0.05); }
+    .evre-kart.secili { border-color:var(--teal); background:rgba(72,201,176,0.08); box-shadow:0 0 14px rgba(72,201,176,0.15); }
+    .evre-kart .evre-ad { font-size:0.72rem; font-weight:700; color:var(--text); line-height:1.3; }
+    .evre-kart .evre-ac { font-size:0.65rem; color:var(--text2); line-height:1.4; }
+    .evre-detay { background:var(--bg2); border:1px solid var(--border); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:16px 20px; margin-top:8px; display:none; animation:fadeUp 0.3s ease-out; }
+    .evre-detay.goster { display:block; }
+    .evre-detay h4 { color:var(--teal); font-size:0.95rem; margin-bottom:8px; }
+    .evre-detay p { font-size:0.85rem; color:var(--text2); line-height:1.75; }
+
+    /* Diyagram Chip */
+    .chip-row { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px; }
+    .diyagram-chip { font-size:0.75rem; font-weight:600; padding:5px 14px; border-radius:999px; border:1px solid var(--border2); color:var(--text2); background:var(--bg3); cursor:pointer; transition:all 0.2s; }
+    .diyagram-chip:hover { border-color:rgba(72,201,176,0.4); color:var(--teal); }
+    .diyagram-chip.aktif { border-color:var(--teal); color:var(--teal); background:rgba(72,201,176,0.1); }
+
+    /* Tutulma */
+    .tutulma-row { display:flex; gap:16px; flex-wrap:wrap; }
+    .tutulma-kart { flex:1; min-width:260px; background:var(--bg3); border:1px solid var(--border2); border-radius:14px; overflow:hidden; }
+    .tutulma-kart canvas { display:block; width:100%; background:#05080f; }
+    .tutulma-icerik { padding:16px; }
+    .tutulma-icerik h4 { font-size:0.9rem; font-weight:700; color:var(--h2); margin-bottom:8px; }
+    .tutulma-icerik p { font-size:0.82rem; color:var(--text2); line-height:1.7; margin-bottom:12px; }
+    .tutulma-durum { font-size:0.75rem; color:var(--orange); font-weight:600; text-align:center; min-height:18px; margin:4px 0; }
+
+    /* Büyük Bilgi Kartları */
+    .cisim-kartlar { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+    .cisim-kart { background:var(--bg3); border:1px solid var(--border2); border-radius:14px; padding:24px 20px; cursor:pointer; transition:all 0.25s; position:relative; overflow:hidden; }
+    .cisim-kart::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:14px 14px 0 0; }
+    .cisim-kart.gunes::before { background:linear-gradient(90deg,#ff8800,#ffd700); }
+    .cisim-kart.dunya::before { background:linear-gradient(90deg,#2277ff,#48c9b0); }
+    .cisim-kart.ay::before { background:linear-gradient(90deg,#888,#ccc); }
+    .cisim-kart:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.3); border-color:var(--border); }
+    .cisim-emoji { font-size:2.5rem; display:block; margin-bottom:10px; filter:drop-shadow(0 0 10px rgba(93,173,226,0.3)); }
+    .cisim-kart h3 { font-size:1rem; font-weight:700; color:var(--h2); margin-bottom:4px; }
+    .cisim-kart .cisim-tip { font-size:0.7rem; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+    .cisim-bilgi { font-size:0.82rem; color:var(--text); line-height:1.7; margin-bottom:12px; }
+    .cisim-ilginc { background:rgba(72,201,176,0.06); border:1px solid rgba(72,201,176,0.15); border-radius:8px; padding:10px 14px; font-size:0.78rem; color:var(--teal); line-height:1.6; }
+    .cisim-ilginc::before { content:'💡 '; }
+
+    /* Gezegen Haritası */
+    .harita-layout { display:flex; gap:16px; flex-wrap:wrap; }
+    .harita-canvas-wrap { flex:2; min-width:300px; }
+    .harita-bilgi { flex:1; min-width:220px; }
+    .gezegen-bilgi-kart { background:var(--bg3); border:1px solid var(--border2); border-radius:14px; padding:20px; min-height:260px; transition:all 0.3s; }
+    .gezegen-bilgi-kart .gb-emoji { font-size:2rem; margin-bottom:8px; display:block; }
+    .gezegen-bilgi-kart .gb-ad { font-size:1.1rem; font-weight:700; color:var(--h2); margin-bottom:2px; }
+    .gezegen-bilgi-kart .gb-tip { font-size:0.7rem; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+    .gezegen-bilgi-kart .gb-bilgi { font-size:0.82rem; color:var(--text); line-height:1.7; margin-bottom:10px; }
+    .gezegen-bilgi-kart .gb-ilginc { background:rgba(255,166,87,0.06); border:1px solid rgba(255,166,87,0.15); border-radius:8px; padding:10px 14px; font-size:0.78rem; color:var(--orange); line-height:1.6; }
+    .gezegen-bilgi-kart .gb-ilginc::before { content:'🔭 '; }
+    .gezegen-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+    .gezegen-chip { font-size:0.72rem; font-weight:600; padding:4px 12px; border-radius:999px; border:1px solid var(--border2); color:var(--text2); background:var(--bg3); cursor:pointer; transition:all 0.2s; }
+    .gezegen-chip.aktif { border-color:var(--cyan); color:var(--cyan); background:rgba(93,173,226,0.1); }
+    .gezegen-chip:hover { border-color:var(--cyan); color:var(--cyan); }
+
+    @media(max-width:600px) {
+      .evre-grid { grid-template-columns:repeat(2,1fr); }
+      .tutulma-row { flex-direction:column; }
+      .harita-layout { flex-direction:column; }
+      .cisim-kartlar { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="../index.html">⚗️ DoğruLab</a>
+  <div class="deney-badge">Astronomi · 7. Sınıf</div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <span class="hero-emoji">🌍</span>
+    <h1>Güneş, Ay ve Dünya</h1>
+    <p>Milyonlarca yıldır Dünya Güneş'in etrafında, Ay da Dünya'nın etrafında döner. Bu üçlünün dansı; mevsimleri, gelgitleri ve gökyüzündeki en büyüleyici olayları yaratır.</p>
+    <div class="meta-row">
+      <span class="meta-chip sinif">Astronomi · 7. Sınıf</span>
+      <span class="meta-chip sure">⏱ 35 dk</span>
+      <span class="meta-chip zorluk">✦ Orta</span>
+    </div>
+  </div>
+
+  <!-- BÖLÜM 1: GÜNEŞ SİSTEMİ ANİMASYONU -->
+  <section>
+    <div class="section-title">🌌 Güneş Sistemi'ne Giriş</div>
+    <div class="canvas-sarmal">
+      <canvas id="uzayCanvas" height="340"></canvas>
+      <span class="canvas-not">Ölçek temsilidir</span>
+    </div>
+    <div class="card" style="margin-bottom:14px;">
+      <h3 style="color:var(--h2);margin-bottom:8px;">Güneş Sistemi'ne Hoş Geldin</h3>
+      <p style="font-size:0.85rem;color:var(--text2);line-height:1.8;">Güneş, sistemimizin kalbinde duran devasa bir yıldız. Etrafında dönen gezegenler, uydular ve milyonlarca küçük gök cismi bu sistemin parçası. Şimdi bu üç önemli cismi yakından tanıyalım.</p>
+    </div>
+
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>🔭 Güneş ne kadar büyük?</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">
+        <p>Güneş'in içine <strong>1,3 milyon</strong> tane Dünya sığar! Güneş bir <strong>futbol sahası</strong> büyüklüğünde olsaydı, Dünya bir <strong>bezelye tanesi</strong> kadar olurdu.</p>
+        <div class="boyut-bar"><span class="boyut-bar-etiket">Güneş</span><div class="boyut-bar-dis"><div class="boyut-bar-ic" style="width:100%;background:linear-gradient(90deg,#ff8800,#ffd700);"></div></div></div>
+        <div class="boyut-bar"><span class="boyut-bar-etiket">Dünya</span><div class="boyut-bar-dis"><div class="boyut-bar-ic" style="width:0.9%;background:linear-gradient(90deg,#2277ff,#48c9b0);min-width:4px;"></div></div></div>
+        <div class="boyut-bar"><span class="boyut-bar-etiket">Ay</span><div class="boyut-bar-dis"><div class="boyut-bar-ic" style="width:0.25%;background:#aaa;min-width:3px;"></div></div></div>
+      </div>
+    </div>
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>💡 Işık hızı ile yolculuk</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">
+        <p>Işık saniyede 300.000 km yol alır — evrendeki en hızlı şey. Güneş'ten çıkan ışık Dünya'ya <strong>8 dakikada</strong>, Ay'a ise sadece <strong>1,3 saniyede</strong> ulaşır. Yani şu an gördüğün güneş ışığı aslında 8 dakika öncesinin ışığı!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÖLÜM 2: DÜNYA-AY SİSTEMİ -->
+  <section>
+    <div class="section-title">🌙 Dünya'nın Sadık Yoldaşı</div>
+    <div class="canvas-sarmal">
+      <canvas id="dunyaAyCanvas" height="260"></canvas>
+    </div>
+    <div class="card" style="margin-bottom:14px;">
+      <h3 style="color:var(--h2);margin-bottom:8px;">Ay Neden Hep Aynı Yüzünü Gösterir?</h3>
+      <p style="font-size:0.85rem;color:var(--text2);line-height:1.8;">Ay kendi ekseni etrafında dönerken, aynı anda Dünya'nın etrafında da döner. Ve bu iki dönüş birbirine eşittir — tam <strong style="color:var(--teal);">27,3 gün</strong>. Bu yüzden Ay'ın hep aynı yüzü bize bakar. Diğer tarafını görmek için uzaya çıkmak gerekir!</p>
+    </div>
+
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>⚖️ Ay'da kaç kilo olurdun?</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">
+        <p>Ay'ın yerçekimi Dünya'nın <strong>6'da 1'i</strong> kadar. Dünya'da 60 kg olan biri Ay'da sadece <strong>10 kg</strong> ağırlığında olurdu. 2 metrelik bir sıçrama Ay'da <strong>12 metreye</strong> ulaşır!</p>
+      </div>
+    </div>
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>🌊 Gelgitleri kim kontrol ediyor?</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">
+        <p>Okyanuslardaki gelgitlerin (med-cezir) ana sebebi <strong>Ay'ın çekim kuvveti</strong>. Ay, Dünya'ya en yakın taraftaki suyu kendine doğru çeker ve orada deniz seviyesi yükselir. Ay her gün Dünya etrafında biraz ilerlediği için gelgitler de kayar.</p>
+      </div>
+    </div>
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>🚀 Ay uzaklaşıyor mu?</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">
+        <p>Evet! Ay her yıl Dünya'dan <strong>3,8 cm</strong> uzaklaşıyor. Milyarlarca yıl önce Ay çok daha yakındı ve gökyüzünde devasa görünüyordu. Milyarlarca yıl sonra ise çok daha küçük görünecek.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÖLÜM 3: AY EVRELERİ GALERİSİ -->
+  <section>
+    <div class="section-title">🌓 Ay Evreleri</div>
+    <div class="ay-hook">
+      <div class="hook-baslik">Hiç dikkat ettiniz mi? Ay her gece biraz farklı görünüyor.</div>
+      <div class="hook-alt">Kimi gece gökyüzünde ince bir hilal, kimi gece tam bir daire. Bu değişim tesadüf değil — tamamen geometri.</div>
+    </div>
+    <div id="evreGrid" class="evre-grid"></div>
+    <div id="evreDetay" class="evre-detay"></div>
+  </section>
+
+  <!-- BÖLÜM 4: AY EVRELERİ NASIL OLUŞUR -->
+  <section>
+    <div class="section-title">🔄 Ay Evreleri Nasıl Oluşur?</div>
+    <div class="canvas-sarmal">
+      <canvas id="diyagramCanvas" height="300"></canvas>
+    </div>
+    <div id="chipRow" class="chip-row"></div>
+    <div class="card" style="margin-top:16px;">
+      <p style="font-size:0.85rem;color:var(--text2);line-height:1.8;">Ay'ın aydınlık yüzü her zaman Güneş'e bakıyor. Biz Dünya'dan sadece bu aydınlık yüzün bize bakan kısmını görürüz. Ay, Dünya etrafında dönerken Güneş'e bakan açısı değişir — bu yüzden her gece farklı görünür. Bir tam tur <strong style="color:var(--teal);">29,5 gün</strong> sürer.</p>
+    </div>
+  </section>
+
+  <!-- BÖLÜM 5: TUTULMALAR -->
+  <section>
+    <div class="section-title">🌑 Tutulmalar</div>
+    <div class="card" style="margin-bottom:16px;">
+      <p style="font-size:0.85rem;color:var(--text2);line-height:1.8;">Güneş, Dünya ve Ay tam bir hizaya geldiğinde tutulma gerçekleşir. Ama neden her ay olmuyor? Çünkü Ay'ın yörünge düzlemi, Dünya'nın yörünge düzleminden <strong style="color:var(--teal);">5° eğik</strong>. Bu yüzden çoğu zaman Ay tam hizaya gelmez.</p>
+    </div>
+    <div class="tutulma-row">
+      <div class="tutulma-kart">
+        <canvas id="gunesTutulmaCanvas" height="160"></canvas>
+        <div class="tutulma-durum" id="gtDurum"></div>
+        <div class="tutulma-icerik">
+          <h4>☀️ Güneş Tutulması</h4>
+          <p>Ay, Güneş ile Dünya arasına girdiğinde oluşur. Ay küçük olmasına rağmen Güneş'e olan mesafesi sayesinde onu tam kapatabilir. Bu kozmik bir tesadüf: Güneş, Ay'dan <strong style="color:var(--orange);">400 kat büyük</strong> ama <strong style="color:var(--orange);">400 kat daha uzakta</strong>.</p>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btnGunesTutulma" onclick="gunesTutulmaOynat()">▶ Oynat</button>
+          </div>
+        </div>
+      </div>
+      <div class="tutulma-kart">
+        <canvas id="ayTutulmaCanvas" height="160"></canvas>
+        <div class="tutulma-durum" id="atDurum"></div>
+        <div class="tutulma-icerik">
+          <h4>🌕 Ay Tutulması</h4>
+          <p>Dünya, Güneş ile Ay arasına girdiğinde Dünya'nın gölgesi Ay üzerine düşer. Ay tamamen kararmaz — atmosferimiz kırmızı ışığı kırarak Ay'a ulaştırır. Sonuç: <strong style="color:var(--red);">"Kan Ayı"</strong> denilen kızıl görünüm.</p>
+          <div class="btn-row">
+            <button class="btn btn-secondary" id="btnAyTutulma" onclick="ayTutulmaOynat()">▶ Oynat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;">
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>📅 Tutulmalar ne sıklıkta olur?</span><span class="kesfet-ok">▾</span></div>
+        <div class="kesfet-icerik">
+          <p><strong>Güneş tutulması:</strong> Dünyada yılda 2–5 kez gerçekleşir, ama belirli bir noktadan tam tutulma görmek ortalama <strong>375 yılda bir</strong> mümkün.<br>
+          <strong>Ay tutulması:</strong> Yılda 0–3 kez. Dünya'nın gece tarafındaki herkes görebilir, bu yüzden daha sık denk gelinir.</p>
+        </div>
+      </div>
+      <div class="kesfet" onclick="this.classList.toggle('acik')">
+        <div class="kesfet-baslik"><span>👑 Güneş'in tacı (Korona)</span><span class="kesfet-ok">▾</span></div>
+        <div class="kesfet-icerik">
+          <p>Tam güneş tutulmasında Güneş'in diski tamamen kapatılır ve etrafında beyaz-gümüşi bir ışık halkası belirir. Bu, Güneş'in <strong>korona</strong> adı verilen dış atmosferidir. Normalde Güneş'in parlaklığı yüzünden göremeyiz — sadece tutulma anında ortaya çıkar.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÖLÜM 6: GÜNEŞ, DÜNYA, AY BİLGİ PANELLERİ -->
+  <section>
+    <div class="section-title">🪐 Gök Cisimlerini Tanı</div>
+    <p style="font-size:0.85rem;color:var(--text2);margin-bottom:16px;line-height:1.7;">Bu üç gök cismi hakkında bilmediğin çok şey olabilir. Kartlara tıklayarak keşfet!</p>
+    <div class="cisim-kartlar">
+
+      <div class="cisim-kart gunes" onclick="cisimDetayGoster(this)">
+        <span class="cisim-emoji">☀️</span>
+        <h3>Güneş</h3>
+        <div class="cisim-tip">Yıldız</div>
+        <p class="cisim-bilgi">Güneş sistemimizin merkezi. Hidrojen gazını helyuma dönüştürerek enerji üretir. Yüzey sıcaklığı yaklaşık 5.500°C.</p>
+        <div class="cisim-ilginc">Güneş her saniye 4 milyon ton maddeyi saf enerjiye çevirir! Bu enerji sayesinde Dünya'da yaşam mümkün.</div>
+        <div style="margin-top:10px;">
+          <div class="boyut-bar"><span class="boyut-bar-etiket" style="font-size:0.68rem;">Boyut</span><div class="boyut-bar-dis"><div class="boyut-bar-ic" style="width:100%;background:linear-gradient(90deg,#ff8800,#ffd700);"></div></div></div>
+          <p style="font-size:0.7rem;color:var(--text2);margin-top:4px;">Dünya'dan 109 kat geniş — içine 1.3 milyon Dünya sığar</p>
+        </div>
+      </div>
+
+      <div class="cisim-kart dunya" onclick="cisimDetayGoster(this)">
+        <span class="cisim-emoji">🌍</span>
+        <h3>Dünya</h3>
+        <div class="cisim-tip">Kayalık Gezegen</div>
+        <p class="cisim-bilgi">Bilinen evrendeki tek yaşanabilir gezegen. Yüzeyinin %71'i suyla kaplı. Atmosfer ve manyetik alan tarafından korunur.</p>
+        <div class="cisim-ilginc">Dünya'nın çekirdeği güneş yüzeyi kadar sıcak — yaklaşık 5.500°C! Bu sıcaklık manyetik alanımızı oluşturuyor.</div>
+        <div style="margin-top:10px;">
+          <div class="boyut-bar"><span class="boyut-bar-etiket" style="font-size:0.68rem;">Boyut</span><div class="boyut-bar-dis"><div class="boyut-bar-ic" style="width:30%;background:linear-gradient(90deg,#2277ff,#48c9b0);"></div></div></div>
+          <p style="font-size:0.7rem;color:var(--text2);margin-top:4px;">Referans boyut — diğer gezegenleri buna göre kıyasla</p>
+        </div>
+      </div>
+
+      <div class="cisim-kart ay" onclick="cisimDetayGoster(this)">
+        <span class="cisim-emoji">🌙</span>
+        <h3>Ay</h3>
+        <div class="cisim-tip">Uydu</div>
+        <p class="cisim-bilgi">Dünya'nın tek doğal uydusu. Kendi ışığı yoktur, güneş ışığını yansıtır. Okyanuslardaki gelgitlerin ana nedenidir.</p>
+        <div class="cisim-ilginc">Ay'da atmosfer yok — gökyüzü gündüz bile kapkaranlık. Ayak izleri milyonlarca yıl bozulmadan kalır!</div>
+        <div style="margin-top:10px;">
+          <div class="boyut-bar"><span class="boyut-bar-etiket" style="font-size:0.68rem;">Boyut</span><div class="boyut-bar-dis"><div class="boyut-bar-ic" style="width:8%;background:linear-gradient(90deg,#888,#ccc);min-width:6px;"></div></div></div>
+          <p style="font-size:0.7rem;color:var(--text2);margin-top:4px;">Dünya'nın yaklaşık 4'te 1'i kadar</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- BÖLÜM 7: GEZEGEN HARİTASI -->
+  <section>
+    <div class="section-title">🗺️ Güneş Sistemi Haritası</div>
+    <p style="font-size:0.85rem;color:var(--text2);margin-bottom:16px;line-height:1.7;">Gezegenlere tıklayarak bilgi edin. Her birinin kendine özgü sırları var!</p>
+    <div class="harita-layout">
+      <div class="harita-canvas-wrap">
+        <div class="canvas-sarmal" style="margin-bottom:0;">
+          <canvas id="haritaCanvas" height="200"></canvas>
+        </div>
+        <div class="gezegen-chip-row" id="gezegenChipRow"></div>
+      </div>
+      <div class="harita-bilgi">
+        <div class="gezegen-bilgi-kart" id="gezegenKart">
+          <span class="gb-emoji">🌌</span>
+          <div class="gb-ad">Bir gezegen seç</div>
+          <div class="gb-tip">Haritaya veya butona tıkla</div>
+          <p class="gb-bilgi">Güneş sistemindeki gezegenleri keşfetmek için haritada veya aşağıdaki butonlarda birine tıkla.</p>
+        </div>
+      </div>
+    </div>
+    <div class="note-box turuncu" style="margin-top:14px;">
+      <strong>☄️ Biliyor muydun?</strong>
+      Dünya sürekli uzaydan gelen küçük kaya parçalarının (meteor) bombardımanı altında. Şanslıyız ki atmosferimiz bunların çoğunu yakar — gökyüzünde "kayan yıldız" dediğimiz şey aslında yanan meteorlar!
+    </div>
+  </section>
+
+  <!-- QR CODE -->
+  <section>
+    <div class="section-title">📱 Bu Deneyi Paylaş</div>
+    <div class="card">
+      <div class="qr-section">
+        <div id="qrcode"></div>
+        <div class="qr-info">
+          <h3>QR Kodu Tara</h3>
+          <p>Bu simülasyonu arkadaşlarınla paylaş veya tablet/telefonda aç.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>⚗️ <span style="background:linear-gradient(135deg,#5dade2,#48c9b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:600;">DoğruLab</span> — Deneyi önce sanalda yap, gerçekte mükemmel uygula.</p>
+</footer>
+
+<script src="../assets/dogrulab.js"></script>
+<script>
+/* ======== VERİLER ======== */
+
+var EVRE_VERILERI = [
+  { ad:'Yeni Ay', ac:'Ay güneşle aynı yönde, yüzü karanlıkta', lit:0, wax:true,
+    detay:'Ay, Güneş ile aynı yönde olduğu için aydınlık yüzü tamamen bize ters bakar. Gökyüzünde Ay\'ı göremeyiz. Yeni Ay gecesi en karanlık gecedir — yıldız gözlemi için idealdir.' },
+  { ad:'Hilal (Büyüyen)', ac:'Batı ufkunda ince bir tırnak', lit:0.12, wax:true,
+    detay:'Güneş battıktan hemen sonra batı ufkunda ince bir hilal görünür. Ramazan ayının başlangıcı bu hilal ile belirlenir. Hilal her gece biraz daha kalınlaşır.' },
+  { ad:'İlk Dördün', ac:'Sağ yarısı aydınlık', lit:0.5, wax:true,
+    detay:'Ay\'ın tam yarısı aydınlık, yarısı karanlık. Ay öğleden sonra doğar ve gece yarısı batar. "Dördün" adı, Ay\'ın yörüngesinin dörtte birini tamamlamasından gelir.' },
+  { ad:'Şişkin (Büyüyen)', ac:'Dolunay\'a yaklaşıyor', lit:0.85, wax:true,
+    detay:'Ay\'ın büyük kısmı aydınlık, sadece sol kenarı karanlık. Birkaç gün içinde dolunay olacak. "Şişkin" (gibbous) demek "yarıdan fazla aydınlık" anlamına gelir.' },
+  { ad:'Dolunay', ac:'Güneş ve Ay tam karşı yönde', lit:1, wax:true,
+    detay:'Ay\'ın tüm yüzü aydınlık! Güneş batarken Ay doğar. Gece boyunca gökyüzünde kalır. Ay tutulması sadece dolunay sırasında gerçekleşebilir.' },
+  { ad:'Şişkin (Küçülen)', ac:'Azalmaya başlıyor', lit:0.85, wax:false,
+    detay:'Dolunaydan sonra Ay küçülmeye başlar. Şimdi sağ kenar karanlık. Ay gece geç saatlerde doğar ve sabah görünür.' },
+  { ad:'Son Dördün', ac:'Sol yarısı aydınlık', lit:0.5, wax:false,
+    detay:'Yine yarısı aydınlık ama bu sefer sol taraf parlak. Ay gece yarısı doğar ve öğlen batar. Yörüngenin dörtte üçü tamamlanmıştır.' },
+  { ad:'Hilal (Küçülen)', ac:'Sabah gökyüzünde, yeni aya doğru', lit:0.12, wax:false,
+    detay:'Sabah erken saatlerde doğu ufkunda ince bir hilal. Birkaç gün sonra Ay tamamen görünmez olacak ve döngü baştan başlayacak.' }
+];
+
+var EVRE_ACILAR = [
+  -Math.PI/2, -Math.PI/2+Math.PI/4, 0, Math.PI/4,
+  Math.PI/2, Math.PI/2+Math.PI/4, Math.PI, Math.PI+Math.PI/4
+];
+
+var GEZEGENLER = [
+  { ad:'Güneş', tip:'Yıldız', emoji:'☀️', renk:'#ffaa00', r:22,
+    bilgi:'Güneş sisteminin merkezi ve tek yıldızı. Hidrojen gazını helyuma dönüştürerek muazzam enerji üretir. Işığı Dünya\'ya 8 dakikada ulaşır.',
+    ilginc:'Güneş o kadar büyük ki içine 1,3 milyon tane Dünya sığar! Her saniye 4 milyon ton maddeyi enerjiye çevirir.',
+    boyut:'Dünya\'dan 109 kat geniş', pos:0.05 },
+  { ad:'Merkür', tip:'Kayalık Gezegen', emoji:'🪨', renk:'#b0a090', r:3.5,
+    bilgi:'Güneş\'e en yakın ve en küçük gezegen. Yüzeyi tıpkı Ay gibi kraterlerle kaplı. Atmosferi neredeyse yok.',
+    ilginc:'Gündüz 430°C, gece -180°C! Güneş sistemindeki en büyük sıcaklık farkı bu gezegende.',
+    boyut:'Dünya\'dan 2,6 kat küçük', pos:0.12 },
+  { ad:'Venüs', tip:'Kayalık Gezegen', emoji:'🌫️', renk:'#e8c060', r:5,
+    bilgi:'Boyut olarak Dünya\'nın "ikizi" ama yüzeyi cehennem gibi. Kalın CO₂ atmosferi sera etkisi yaratır. Tüm gezegenlerin en sıcağı!',
+    ilginc:'Venüs ters yöne dönüyor — güneş batıdan doğar! Ayrıca bir günü bir yılından uzun.',
+    boyut:'Dünya ile neredeyse aynı boyutta', pos:0.19 },
+  { ad:'Dünya', tip:'Kayalık Gezegen', emoji:'🌍', renk:'#3388ff', r:5.5,
+    bilgi:'Bilinen evrendeki tek yaşanabilir gezegen. Yüzeyinin %71\'i suyla kaplı. Atmosfer ve manyetik alan canlıları korur.',
+    ilginc:'Dünya\'nın çekirdeği güneş yüzeyi kadar sıcak — yaklaşık 5.500°C! Bu sıcaklık manyetik alanımızı oluşturuyor.',
+    boyut:'Referans gezegen', pos:0.26 },
+  { ad:'Mars', tip:'Kayalık Gezegen', emoji:'🔴', renk:'#cc4422', r:4,
+    bilgi:'Kırmızı gezegen! Yüzeyindeki demir oksit (pas) kırmızı rengini verir. Güneş sisteminin en yüksek dağı Olympus Mons burada.',
+    ilginc:'Mars\'ta şu an robotlar var! NASA\'nın Perseverance aracı 2021\'den beri yüzeyde dolaşıyor ve numune topluyor.',
+    boyut:'Dünya\'nın yarısı kadar', pos:0.33 },
+  { ad:'Asteroid Kuşağı', tip:'Kayalık Parçalar', emoji:'☄️', renk:'#887766', r:0,
+    bilgi:'Mars ve Jüpiter arasında milyonlarca kaya parçası. Bunlar bir gezegen olamamış kalıntılardır — Jüpiter\'in çekim kuvveti birleşmelerini engellemiştir.',
+    ilginc:'Tüm asteroidleri toplasan, Ay\'ın bile %4\'ü kadar kütlesi olmaz! Çoğu çok küçük.',
+    boyut:'Dağınık kayalar', pos:0.40 },
+  { ad:'Jüpiter', tip:'Gaz Devi', emoji:'🟤', renk:'#d4a060', r:14,
+    bilgi:'Güneş sisteminin en büyük gezegeni. Katı bir yüzeyi yok — tamamen gazdan oluşur. Büyük Kırmızı Leke yüzlerce yıldır süren devasa bir fırtına.',
+    ilginc:'Jüpiter\'in de halkası var, biliyor muydunuz? Satürn kadar belirgin değil ama ince bir toz halkası mevcut! Ayrıca 95 bilinen uydusu var.',
+    boyut:'Dünya\'dan 11 kat geniş', pos:0.52 },
+  { ad:'Satürn', tip:'Gaz Devi', emoji:'🪐', renk:'#e8c878', r:11,
+    bilgi:'Muhteşem halkalarıyla ünlü. Halkaları buz parçacıkları ve kayalardan oluşur. Yoğunluğu o kadar düşük ki suya bıraksan yüzer!',
+    ilginc:'Satürn\'ün halkaları aslında çok ince — genişliği binlerce kilometre ama kalınlığı sadece 10 metre kadar!',
+    boyut:'Dünya\'dan 9,5 kat geniş', pos:0.65 },
+  { ad:'Uranüs', tip:'Buz Devi', emoji:'💠', renk:'#88ccdd', r:7,
+    bilgi:'Yan yatık dönen tuhaf gezegen! Ekseni neredeyse 90° eğik — adeta yuvarlanarak yörüngesinde ilerler. Metan gazı turkuaz rengini verir.',
+    ilginc:'Uranüs\'ün de halkaları var ve 27 uydusu. Hepsinin adı Shakespeare oyun karakterlerinden geliyor!',
+    boyut:'Dünya\'dan 4 kat geniş', pos:0.79 },
+  { ad:'Neptün', tip:'Buz Devi', emoji:'🔵', renk:'#3355ff', r:6.5,
+    bilgi:'Güneş\'e en uzak gezegen. Koyu mavi rengi metan gazından gelir. Güneş sistemindeki en güçlü rüzgarlar burada — saatte 2.000 km!',
+    ilginc:'Neptün\'ün bir yılı 165 Dünya yılına eşit. Keşfedildiği 1846\'dan bu yana henüz bir tam tur bile tamamlayamadı!',
+    boyut:'Dünya\'dan 3,9 kat geniş', pos:0.92 }
+];
+
+/* ======== YARDIMCI ======== */
+function lerp(a,b,t){ return a+(b-a)*t; }
+function lerpAci(a,b,t){ var d=b-a; while(d>Math.PI)d-=Math.PI*2; while(d<-Math.PI)d+=Math.PI*2; return a+d*t; }
+
+/* ======== BÖLÜM 1: GÜNEŞ SİSTEMİ CANVAS ======== */
+var uzayCanvas, uzayCtx, uzayW, uzayH;
+var yildizlar = [];
+var uzayT = 0;
+
+function yildizlarOlustur(){
+  yildizlar=[];
+  for(var i=0;i<200;i++){
+    yildizlar.push({
+      x:Math.random()*uzayW, y:Math.random()*uzayH,
+      r:0.3+Math.random()*1.6,
+      hiz:0.5+Math.random()*2,
+      faz:Math.random()*Math.PI*2,
+      renk: Math.random()>0.85 ? 'rgba(140,180,255,' : (Math.random()>0.7 ? 'rgba(255,240,200,' : 'rgba(220,220,240,')
+    });
+  }
+}
+
+function uzayBoyutlandir(){
+  uzayCanvas=document.getElementById('uzayCanvas');
+  uzayCtx=uzayCanvas.getContext('2d');
+  uzayCanvas.width=uzayCanvas.offsetWidth||800;
+  uzayCanvas.height=340;
+  uzayW=uzayCanvas.width; uzayH=uzayCanvas.height;
+  yildizlarOlustur();
+}
+
+var dunyaAci=0, ayAci=0, marsAci=Math.PI*0.7, jupiterAci=Math.PI*1.3;
+
+function uzayCiz(){
+  var ctx=uzayCtx;
+  ctx.clearRect(0,0,uzayW,uzayH);
+
+  // Arka plan gradyan (uzay derinliği)
+  var bg=ctx.createRadialGradient(uzayW/2,uzayH/2,40,uzayW/2,uzayH/2,uzayW*0.7);
+  bg.addColorStop(0,'#0a0f1e');
+  bg.addColorStop(1,'#030510');
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,uzayW,uzayH);
+
+  // Nebula ışıltısı (çok hafif)
+  var nb=ctx.createRadialGradient(uzayW*0.3,uzayH*0.4,10,uzayW*0.3,uzayH*0.4,uzayW*0.4);
+  nb.addColorStop(0,'rgba(93,80,160,0.04)');
+  nb.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=nb;
+  ctx.fillRect(0,0,uzayW,uzayH);
+
+  // Yıldızlar
+  uzayT+=0.016;
+  for(var i=0;i<yildizlar.length;i++){
+    var y=yildizlar[i];
+    var parlaklik=0.3+0.7*Math.abs(Math.sin(uzayT*y.hiz+y.faz));
+    ctx.fillStyle=y.renk+(parlaklik*0.8).toFixed(2)+')';
+    ctx.beginPath();
+    ctx.arc(y.x,y.y,y.r,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  var cx=uzayW/2, cy=uzayH/2;
+  var scale=Math.min(uzayW/800,uzayH/400);
+
+  // Yörünge parametreleri (canvas'a sığacak şekilde)
+  var dunyaRx=170*scale, dunyaRy=65*scale;
+  var marsRx=250*scale, marsRy=90*scale;
+  var jupRx=340*scale, jupRy=115*scale;
+  var ayOrbitR=28*scale;
+
+  // Yörünge çizgileri
+  ctx.strokeStyle='rgba(100,120,160,0.12)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,6]);
+  // Dünya yörüngesi
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,dunyaRx,dunyaRy,0,0,Math.PI*2);
+  ctx.stroke();
+  // Mars yörüngesi
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,marsRx,marsRy,0,0,Math.PI*2);
+  ctx.stroke();
+  // Jüpiter yörüngesi
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,jupRx,jupRy,0,0,Math.PI*2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Güneş parıltısı
+  var sunPulse=1+0.06*Math.sin(uzayT*1.2);
+  var glow=ctx.createRadialGradient(cx,cy,20*scale,cx,cy,80*scale*sunPulse);
+  glow.addColorStop(0,'rgba(255,200,50,0.25)');
+  glow.addColorStop(0.5,'rgba(255,140,30,0.08)');
+  glow.addColorStop(1,'rgba(255,80,0,0)');
+  ctx.fillStyle=glow;
+  ctx.beginPath();
+  ctx.arc(cx,cy,80*scale*sunPulse,0,Math.PI*2);
+  ctx.fill();
+
+  // Güneş
+  var sunR=30*scale;
+  var sg=ctx.createRadialGradient(cx-sunR*0.3,cy-sunR*0.3,sunR*0.1,cx,cy,sunR);
+  sg.addColorStop(0,'#fffde0');
+  sg.addColorStop(0.3,'#ffe060');
+  sg.addColorStop(0.7,'#ffaa00');
+  sg.addColorStop(1,'#ff6600');
+  ctx.fillStyle=sg;
+  ctx.beginPath();
+  ctx.arc(cx,cy,sunR,0,Math.PI*2);
+  ctx.fill();
+
+  // Gezegen konumları
+  dunyaAci+=0.0015;
+  marsAci+=0.0008;
+  jupiterAci+=0.0003;
+
+  var dunyaX=cx+Math.cos(dunyaAci)*dunyaRx;
+  var dunyaY=cy+Math.sin(dunyaAci)*dunyaRy;
+
+  var marsX=cx+Math.cos(marsAci)*marsRx;
+  var marsY=cy+Math.sin(marsAci)*marsRy;
+
+  var jupX=cx+Math.cos(jupiterAci)*jupRx;
+  var jupY=cy+Math.sin(jupiterAci)*jupRy;
+
+  // Derinlik sıralama: y değeri küçük olan (uzaktaki) önce çizilir
+  var cisimler=[
+    {tip:'jup',x:jupX,y:jupY,depth:jupY},
+    {tip:'mars',x:marsX,y:marsY,depth:marsY},
+    {tip:'dunya',x:dunyaX,y:dunyaY,depth:dunyaY},
+    {tip:'gunes',x:cx,y:cy,depth:cy}
+  ];
+  cisimler.sort(function(a,b){return a.depth-b.depth;});
+
+  for(var c=0;c<cisimler.length;c++){
+    var obj=cisimler[c];
+    if(obj.tip==='gunes') continue; // Güneş zaten çizildi
+
+    if(obj.tip==='jup'){
+      // Jüpiter
+      var jr=10*scale;
+      var jg=ctx.createRadialGradient(obj.x-jr*0.3,obj.y-jr*0.3,1,obj.x,obj.y,jr);
+      jg.addColorStop(0,'#e8c888');
+      jg.addColorStop(0.5,'#d4a060');
+      jg.addColorStop(1,'#8b6530');
+      ctx.fillStyle=jg;
+      ctx.beginPath();
+      ctx.arc(obj.x,obj.y,jr,0,Math.PI*2);
+      ctx.fill();
+      // Jüpiter bandı
+      ctx.strokeStyle='rgba(180,120,60,0.3)';
+      ctx.lineWidth=1.5*scale;
+      ctx.beginPath();
+      ctx.moveTo(obj.x-jr,obj.y+jr*0.15);
+      ctx.lineTo(obj.x+jr,obj.y+jr*0.15);
+      ctx.stroke();
+      // Büyük Kırmızı Leke
+      ctx.fillStyle='rgba(200,80,40,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(obj.x+jr*0.3,obj.y+jr*0.35,jr*0.22,jr*0.15,0,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle='rgba(255,210,120,0.7)';
+      ctx.font=(9*scale)+'px Poppins,sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText('Jüpiter',obj.x,obj.y+jr+12*scale);
+    }
+
+    if(obj.tip==='mars'){
+      var mr=4.5*scale;
+      var mg=ctx.createRadialGradient(obj.x-mr*0.3,obj.y-mr*0.3,0.5,obj.x,obj.y,mr);
+      mg.addColorStop(0,'#ff8855');
+      mg.addColorStop(1,'#aa3311');
+      ctx.fillStyle=mg;
+      ctx.beginPath();
+      ctx.arc(obj.x,obj.y,mr,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle='rgba(255,130,80,0.65)';
+      ctx.font=(8*scale)+'px Poppins,sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText('Mars',obj.x,obj.y+mr+10*scale);
+    }
+
+    if(obj.tip==='dunya'){
+      // Dünya atmosfer halo
+      var dunyaR=7*scale;
+      var dh=ctx.createRadialGradient(obj.x,obj.y,dunyaR,obj.x,obj.y,dunyaR*1.6);
+      dh.addColorStop(0,'rgba(100,180,255,0.15)');
+      dh.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=dh;
+      ctx.beginPath();
+      ctx.arc(obj.x,obj.y,dunyaR*1.6,0,Math.PI*2);
+      ctx.fill();
+
+      // Dünya
+      var dg=ctx.createRadialGradient(obj.x-dunyaR*0.3,obj.y-dunyaR*0.3,1,obj.x,obj.y,dunyaR);
+      dg.addColorStop(0,'#88ddff');
+      dg.addColorStop(0.4,'#2288ff');
+      dg.addColorStop(0.8,'#1155bb');
+      dg.addColorStop(1,'#003388');
+      ctx.fillStyle=dg;
+      ctx.beginPath();
+      ctx.arc(obj.x,obj.y,dunyaR,0,Math.PI*2);
+      ctx.fill();
+      // Kara parçaları
+      ctx.fillStyle='rgba(50,180,80,0.35)';
+      ctx.beginPath();
+      ctx.arc(obj.x+dunyaR*0.15,obj.y-dunyaR*0.2,dunyaR*0.35,0,Math.PI*2);
+      ctx.fill();
+
+      // Ay (Dünya etrafında)
+      ayAci+=0.0015*(365.25/27.3);
+      var ayX2=obj.x+Math.cos(ayAci)*ayOrbitR;
+      var ayY2=obj.y+Math.sin(ayAci)*ayOrbitR*0.4;
+
+      // Ay yörüngesi
+      ctx.strokeStyle='rgba(160,160,180,0.1)';
+      ctx.lineWidth=0.5;
+      ctx.setLineDash([2,3]);
+      ctx.beginPath();
+      ctx.ellipse(obj.x,obj.y,ayOrbitR,ayOrbitR*0.4,0,0,Math.PI*2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      var ayR2=2.5*scale;
+      var ag=ctx.createRadialGradient(ayX2-1,ayY2-1,0.5,ayX2,ayY2,ayR2);
+      ag.addColorStop(0,'#e8e8e0');
+      ag.addColorStop(1,'#888');
+      ctx.fillStyle=ag;
+      ctx.beginPath();
+      ctx.arc(ayX2,ayY2,ayR2,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.fillStyle='rgba(93,173,226,0.7)';
+      ctx.font='bold '+(9*scale)+'px Poppins,sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText('Dünya',obj.x,obj.y+dunyaR+11*scale);
+      ctx.fillStyle='rgba(180,180,200,0.5)';
+      ctx.font=(7*scale)+'px Poppins,sans-serif';
+      ctx.fillText('Ay',ayX2,ayY2+ayR2+7*scale);
+    }
+  }
+
+  requestAnimationFrame(uzayCiz);
+}
+
+/* ======== BÖLÜM 2: DÜNYA-AY CANVAS ======== */
+var daCanvas, daCtx, daW, daH, daAyAci=0;
+
+function daBoyutlandir(){
+  daCanvas=document.getElementById('dunyaAyCanvas');
+  daCtx=daCanvas.getContext('2d');
+  daCanvas.width=daCanvas.offsetWidth||800;
+  daCanvas.height=260;
+  daW=daCanvas.width; daH=daCanvas.height;
+}
+
+function daCiz(){
+  var ctx=daCtx;
+  ctx.clearRect(0,0,daW,daH);
+
+  // Arka plan
+  ctx.fillStyle='#040810';
+  ctx.fillRect(0,0,daW,daH);
+
+  // Yıldızlar (sabit)
+  for(var i=0;i<60;i++){
+    var sx=(i*137.5)%daW, sy=(i*97.3)%daH;
+    ctx.fillStyle='rgba(200,210,230,'+(0.15+0.2*Math.sin(uzayT*0.7+i))+')';
+    ctx.beginPath();
+    ctx.arc(sx,sy,0.5+((i%3)*0.4),0,Math.PI*2);
+    ctx.fill();
+  }
+
+  var cx=daW/2, cy=daH/2;
+  var dunyaR=Math.min(45,daW*0.08);
+  var ayOrbit=Math.min(110,daW*0.2);
+  var ayR=dunyaR*0.3;
+
+  // Güneş ışığı (soldan)
+  for(var s=0;s<5;s++){
+    var sy2=cy-40+s*20;
+    var lg=ctx.createLinearGradient(0,sy2,cx-dunyaR*2,sy2);
+    lg.addColorStop(0,'rgba(255,220,80,0.06)');
+    lg.addColorStop(1,'rgba(255,220,80,0)');
+    ctx.fillStyle=lg;
+    ctx.fillRect(0,sy2-4,cx-dunyaR*2,8);
+  }
+  ctx.fillStyle='rgba(255,220,80,0.5)';
+  ctx.font='10px Poppins,sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText('☀ →',8,16);
+
+  // Ay yörüngesi
+  ctx.strokeStyle='rgba(160,160,180,0.18)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([5,7]);
+  ctx.beginPath();
+  ctx.arc(cx,cy,ayOrbit,0,Math.PI*2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Dünya
+  var dAtmo=ctx.createRadialGradient(cx,cy,dunyaR,cx,cy,dunyaR*1.4);
+  dAtmo.addColorStop(0,'rgba(80,160,255,0.12)');
+  dAtmo.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=dAtmo;
+  ctx.beginPath();
+  ctx.arc(cx,cy,dunyaR*1.4,0,Math.PI*2);
+  ctx.fill();
+
+  var dg=ctx.createRadialGradient(cx-dunyaR*0.3,cy-dunyaR*0.3,2,cx,cy,dunyaR);
+  dg.addColorStop(0,'#88ddff');
+  dg.addColorStop(0.35,'#2288ff');
+  dg.addColorStop(0.7,'#1155bb');
+  dg.addColorStop(1,'#003388');
+  ctx.fillStyle=dg;
+  ctx.beginPath();
+  ctx.arc(cx,cy,dunyaR,0,Math.PI*2);
+  ctx.fill();
+
+  // Kıtalar
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx,cy,dunyaR,0,Math.PI*2);
+  ctx.clip();
+  ctx.fillStyle='rgba(50,180,80,0.3)';
+  ctx.beginPath(); ctx.arc(cx-dunyaR*0.1,cy-dunyaR*0.25,dunyaR*0.35,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+dunyaR*0.3,cy+dunyaR*0.1,dunyaR*0.25,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx-dunyaR*0.35,cy+dunyaR*0.35,dunyaR*0.2,0,Math.PI*2); ctx.fill();
+  // Bulutlar
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  ctx.beginPath(); ctx.arc(cx+dunyaR*0.2,cy-dunyaR*0.4,dunyaR*0.15,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx-dunyaR*0.3,cy+dunyaR*0.1,dunyaR*0.12,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // Dünya etiketi
+  ctx.fillStyle='rgba(93,173,226,0.7)';
+  ctx.font='bold 11px Poppins,sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('Dünya',cx,cy+dunyaR+16);
+
+  // Ay
+  daAyAci+=0.006;
+  var ayX=cx+Math.cos(daAyAci)*ayOrbit;
+  var ayY=cy+Math.sin(daAyAci)*ayOrbit;
+
+  // Ay gölge
+  ctx.fillStyle='rgba(0,0,10,0.4)';
+  ctx.beginPath();
+  ctx.arc(ayX+3,ayY+3,ayR,0,Math.PI*2);
+  ctx.fill();
+
+  var ayGrad=ctx.createRadialGradient(ayX-ayR*0.3,ayY-ayR*0.3,1,ayX,ayY,ayR);
+  ayGrad.addColorStop(0,'#e8e8e0');
+  ayGrad.addColorStop(0.5,'#bbb');
+  ayGrad.addColorStop(1,'#777');
+  ctx.fillStyle=ayGrad;
+  ctx.beginPath();
+  ctx.arc(ayX,ayY,ayR,0,Math.PI*2);
+  ctx.fill();
+
+  // Ay kraterleri
+  ctx.fillStyle='rgba(100,100,90,0.3)';
+  ctx.beginPath(); ctx.arc(ayX-ayR*0.2,ayY-ayR*0.15,ayR*0.15,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ayX+ayR*0.25,ayY+ayR*0.2,ayR*0.12,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ayX-ayR*0.05,ayY+ayR*0.35,ayR*0.09,0,Math.PI*2); ctx.fill();
+
+  ctx.fillStyle='rgba(180,180,200,0.65)';
+  ctx.font='10px Poppins,sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('Ay',ayX,ayY+ayR+12);
+
+  // Dünya-Ay bağlantı çizgisi
+  ctx.strokeStyle='rgba(72,201,176,0.1)';
+  ctx.lineWidth=0.5;
+  ctx.setLineDash([3,5]);
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(ayX,ayY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  requestAnimationFrame(daCiz);
+}
+
+/* ======== BÖLÜM 3: AY EVRELERİ GALERİSİ ======== */
+function evreCanvas(canvas,idx){
+  var ctx=canvas.getContext('2d');
+  var w=80,h=80,r=32;
+  canvas.width=w; canvas.height=h;
+  var cx2=w/2, cy2=h/2;
+  var evre=EVRE_VERILERI[idx];
+
+  // Karanlık taban
+  ctx.fillStyle='#1a1a2e';
+  ctx.beginPath();
+  ctx.arc(cx2,cy2,r,0,Math.PI*2);
+  ctx.fill();
+
+  if(evre.lit>0.02){
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx2,cy2,r,0,Math.PI*2);
+    ctx.clip();
+    // Aydınlık gradyan
+    var lg=ctx.createRadialGradient(cx2-r*0.25,cy2-r*0.25,2,cx2,cy2,r);
+    lg.addColorStop(0,'#f5f5e8');
+    lg.addColorStop(0.5,'#d0d0b8');
+    lg.addColorStop(1,'#909080');
+    ctx.fillStyle=lg;
+    ctx.fillRect(cx2-r,cy2-r,r*2,r*2);
+
+    if(evre.lit<0.98){
+      ctx.fillStyle='#1a1a2e';
+      if(evre.lit<=0.5){
+        if(evre.wax){
+          ctx.beginPath();
+          ctx.arc(cx2,cy2,r,-Math.PI/2,Math.PI/2,false);
+          var ew=r*(1-evre.lit*4);
+          ctx.ellipse(cx2,cy2,Math.abs(ew),r,0,Math.PI/2,-Math.PI/2,ew<0);
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.arc(cx2,cy2,r,Math.PI/2,-Math.PI/2,false);
+          var ew2=r*(1-evre.lit*4);
+          ctx.ellipse(cx2,cy2,Math.abs(ew2),r,0,-Math.PI/2,Math.PI/2,ew2<0);
+          ctx.fill();
+        }
+      } else {
+        if(evre.wax){
+          ctx.beginPath();
+          ctx.arc(cx2,cy2,r,Math.PI/2,-Math.PI/2,false);
+          var ew3=r*((1-evre.lit)*4-1);
+          ctx.ellipse(cx2,cy2,Math.abs(ew3),r,0,-Math.PI/2,Math.PI/2,ew3>0);
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.arc(cx2,cy2,r,-Math.PI/2,Math.PI/2,false);
+          var ew4=r*((1-evre.lit)*4-1);
+          ctx.ellipse(cx2,cy2,Math.abs(ew4),r,0,Math.PI/2,-Math.PI/2,ew4>0);
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  // Kenar parlama
+  ctx.strokeStyle='rgba(200,200,210,0.15)';
+  ctx.lineWidth=0.8;
+  ctx.beginPath();
+  ctx.arc(cx2,cy2,r,0,Math.PI*2);
+  ctx.stroke();
+}
+
+var seciliEvre=-1;
+function evreGridOlustur(){
+  var grid=document.getElementById('evreGrid');
+  grid.innerHTML='';
+  EVRE_VERILERI.forEach(function(evre,i){
+    var kart=document.createElement('div');
+    kart.className='evre-kart';
+    kart.onclick=function(){ evreSecildi(i); };
+    var cvs=document.createElement('canvas');
+    cvs.id='evreCanvas'+i;
+    cvs.style.cssText='width:80px;height:80px;';
+    kart.appendChild(cvs);
+    var ad=document.createElement('div');
+    ad.className='evre-ad';
+    ad.textContent=evre.ad;
+    kart.appendChild(ad);
+    var ac=document.createElement('div');
+    ac.className='evre-ac';
+    ac.textContent=evre.ac;
+    kart.appendChild(ac);
+    grid.appendChild(kart);
+    evreCanvas(cvs,i);
+  });
+}
+
+function evreSecildi(idx){
+  var kartlar=document.querySelectorAll('.evre-kart');
+  kartlar.forEach(function(k,i){ k.classList.toggle('secili',i===idx); });
+
+  var detay=document.getElementById('evreDetay');
+  if(seciliEvre===idx){ detay.className='evre-detay'; seciliEvre=-1; return; }
+  seciliEvre=idx;
+  var evre=EVRE_VERILERI[idx];
+  detay.innerHTML='<h4>'+(idx+1)+'. '+evre.ad+'</h4><p>'+evre.detay+'</p>';
+  detay.className='evre-detay goster';
+
+  // Diyagram senkronize
+  diyagramEvreSec(idx);
+}
+
+/* ======== BÖLÜM 4: AY EVRELERİ DİYAGRAMI ======== */
+var diyagramCanvas2, diyagramCtx2, diyagramW2, diyagramH2;
+var diyagramHedefAci=0, diyagramAniAci=0, diyagramSeciliIdx2=0, diyagramAnimId2=null;
+
+function diyagramBoyutlandir(){
+  diyagramCanvas2=document.getElementById('diyagramCanvas');
+  diyagramCtx2=diyagramCanvas2.getContext('2d');
+  diyagramCanvas2.width=diyagramCanvas2.offsetWidth||800;
+  diyagramCanvas2.height=300;
+  diyagramW2=diyagramCanvas2.width;
+  diyagramH2=diyagramCanvas2.height;
+  diyagramCiz();
+}
+
+function diyagramCiz(){
+  var ctx=diyagramCtx2;
+  ctx.clearRect(0,0,diyagramW2,diyagramH2);
+  ctx.fillStyle='#05080f';
+  ctx.fillRect(0,0,diyagramW2,diyagramH2);
+
+  var cx=diyagramW2/2, cy=diyagramH2/2;
+  var gunesX=55, gunesY=cy, dunyaR=22;
+  var ayOrbitR=Math.min(diyagramW2*0.22,100);
+  var ayR=9, gunesR=30;
+
+  // Işık şeritleri
+  for(var i=0;i<7;i++){
+    var ly=cy-60+i*20;
+    var lg2=ctx.createLinearGradient(gunesX+gunesR,ly,cx-dunyaR-10,ly);
+    lg2.addColorStop(0,'rgba(255,220,60,0.14)');
+    lg2.addColorStop(1,'rgba(255,220,60,0.02)');
+    ctx.fillStyle=lg2;
+    ctx.fillRect(gunesX+gunesR,ly-5,cx-dunyaR-gunesX-gunesR-10,10);
+  }
+
+  // Ay yörüngesi
+  ctx.strokeStyle='rgba(160,160,180,0.2)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,6]);
+  ctx.beginPath();
+  ctx.arc(cx,cy,ayOrbitR,0,Math.PI*2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 8 konum noktası
+  for(var j=0;j<8;j++){
+    var pa=EVRE_ACILAR[j];
+    var px=cx+Math.cos(pa)*ayOrbitR, py=cy+Math.sin(pa)*ayOrbitR;
+    ctx.fillStyle=j===diyagramSeciliIdx2?'rgba(72,201,176,0.35)':'rgba(160,160,180,0.15)';
+    ctx.beginPath();
+    ctx.arc(px,py,5,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  // Güneş-Dünya kesikli
+  ctx.strokeStyle='rgba(255,220,60,0.15)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([6,6]);
+  ctx.beginPath();
+  ctx.moveTo(gunesX+gunesR,cy);
+  ctx.lineTo(cx-dunyaR,cy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Güneş parıltısı
+  var gP=ctx.createRadialGradient(gunesX,gunesY,gunesR*0.5,gunesX,gunesY,gunesR*2);
+  gP.addColorStop(0,'rgba(255,200,50,0.2)');
+  gP.addColorStop(1,'rgba(255,100,0,0)');
+  ctx.fillStyle=gP;
+  ctx.beginPath();
+  ctx.arc(gunesX,gunesY,gunesR*2,0,Math.PI*2);
+  ctx.fill();
+
+  // Güneş
+  var gG=ctx.createRadialGradient(gunesX-8,gunesY-8,2,gunesX,gunesY,gunesR);
+  gG.addColorStop(0,'#fffde0');
+  gG.addColorStop(0.4,'#ffe060');
+  gG.addColorStop(1,'#ff8800');
+  ctx.fillStyle=gG;
+  ctx.beginPath();
+  ctx.arc(gunesX,gunesY,gunesR,0,Math.PI*2);
+  ctx.fill();
+
+  // Dünya
+  var dG=ctx.createRadialGradient(cx-7,cy-7,2,cx,cy,dunyaR);
+  dG.addColorStop(0,'#88ddff');
+  dG.addColorStop(0.4,'#2277ff');
+  dG.addColorStop(1,'#003388');
+  ctx.fillStyle=dG;
+  ctx.beginPath();
+  ctx.arc(cx,cy,dunyaR,0,Math.PI*2);
+  ctx.fill();
+
+  // Ay (animasyonlu)
+  var ax2=cx+Math.cos(diyagramAniAci)*ayOrbitR;
+  var ay2=cy+Math.sin(diyagramAniAci)*ayOrbitR;
+  var lit2=EVRE_VERILERI[diyagramSeciliIdx2].lit;
+  ctx.fillStyle='#1a1a2e';
+  ctx.beginPath();
+  ctx.arc(ax2,ay2,ayR,0,Math.PI*2);
+  ctx.fill();
+
+  var sunAngle2=Math.atan2(gunesY-ay2,gunesX-ax2);
+  if(lit2>0.02){
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(ax2,ay2,ayR,0,Math.PI*2);
+    ctx.clip();
+    var aG2=ctx.createRadialGradient(ax2-ayR*0.3,ay2-ayR*0.3,1,ax2,ay2,ayR);
+    aG2.addColorStop(0,'#f0f0e0');
+    aG2.addColorStop(0.6,'#c0c0a8');
+    aG2.addColorStop(1,'#808070');
+    ctx.fillStyle=aG2;
+    ctx.fillRect(ax2-ayR,ay2-ayR,ayR*2,ayR*2);
+    ctx.restore();
+    if(lit2<0.98){
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(ax2,ay2,ayR,0,Math.PI*2);
+      ctx.clip();
+      ctx.fillStyle='#1a1a2e';
+      ctx.beginPath();
+      ctx.arc(ax2,ay2,ayR*1.5,sunAngle2-Math.PI*0.5,sunAngle2+Math.PI*0.5,false);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // Bağlantı çizgisi
+  ctx.strokeStyle='rgba(72,201,176,0.2)';
+  ctx.lineWidth=0.8;
+  ctx.setLineDash([4,5]);
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(ax2,ay2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Etiketler
+  ctx.font='bold 10px Poppins,sans-serif';
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,200,60,0.8)';
+  ctx.fillText('Güneş',gunesX,gunesY+gunesR+14);
+  ctx.fillStyle='rgba(93,173,226,0.8)';
+  ctx.fillText('Dünya',cx,cy+dunyaR+14);
+  ctx.fillStyle='rgba(180,180,200,0.75)';
+  ctx.font='9px Poppins,sans-serif';
+  ctx.fillText('Ay',ax2,ay2+ayR+12);
+  ctx.fillStyle='rgba(255,220,80,0.6)';
+  ctx.font='bold 10px Poppins,sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText('☀ Işık →',6,18);
+}
+
+function diyagramAnimas(){
+  if(Math.abs(lerpAci(diyagramAniAci,diyagramHedefAci,1)-diyagramAniAci)>0.002){
+    diyagramAniAci=lerpAci(diyagramAniAci,diyagramHedefAci,0.08);
+    diyagramCiz();
+    diyagramAnimId2=requestAnimationFrame(diyagramAnimas);
+  } else {
+    diyagramAniAci=diyagramHedefAci;
+    diyagramCiz();
+  }
+}
+
+function diyagramEvreSec(idx){
+  diyagramSeciliIdx2=idx;
+  diyagramHedefAci=EVRE_ACILAR[idx];
+  var chipler=document.querySelectorAll('.diyagram-chip');
+  chipler.forEach(function(c){c.classList.remove('aktif');});
+  if(chipler[idx]) chipler[idx].classList.add('aktif');
+  if(diyagramAnimId2) cancelAnimationFrame(diyagramAnimId2);
+  diyagramAnimas();
+}
+
+function chipRowOlustur(){
+  var row=document.getElementById('chipRow');
+  EVRE_VERILERI.forEach(function(evre,i){
+    var chip=document.createElement('button');
+    chip.className='diyagram-chip'+(i===0?' aktif':'');
+    chip.textContent=(i+1)+'. '+evre.ad;
+    chip.onclick=function(){ diyagramEvreSec(i); evreSecildi(i); };
+    row.appendChild(chip);
+  });
+}
+
+/* ======== BÖLÜM 5: TUTULMA ANİMASYONLARI ======== */
+var gtCanvas, gtCtx, atCanvas, atCtx;
+var gtAyX=null, gtAnimId=null, gtOynatiliyor=false;
+var atAyX=null, atAnimId=null, atOynatiliyor=false;
+
+function tutulmaBoyutlandir(){
+  gtCanvas=document.getElementById('gunesTutulmaCanvas');
+  gtCtx=gtCanvas.getContext('2d');
+  atCanvas=document.getElementById('ayTutulmaCanvas');
+  atCtx=atCanvas.getContext('2d');
+  gtCanvas.width=gtCanvas.offsetWidth||400;
+  gtCanvas.height=160;
+  atCanvas.width=atCanvas.offsetWidth||400;
+  atCanvas.height=160;
+  gtAyX=gtAyX===null?gtCanvas.width*0.15:gtAyX;
+  atAyX=atAyX===null?atCanvas.width*0.3:atAyX;
+  gunesTutulmaCiz(gtAyX);
+  ayTutulmaCiz(atAyX);
+}
+
+function gunesTutulmaCiz(ayX){
+  var ctx=gtCtx, W=gtCanvas.width, H=gtCanvas.height, cy=H/2;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#05080f';
+  ctx.fillRect(0,0,W,H);
+
+  // Birkaç yıldız
+  for(var s=0;s<20;s++){
+    ctx.fillStyle='rgba(200,210,230,'+(0.1+0.15*Math.sin(uzayT*0.5+s*2))+')';
+    ctx.beginPath();
+    ctx.arc((s*67)%W,(s*43)%H,0.5,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  var gunesX=W*0.12, dunyaX=W*0.88;
+
+  // Işık
+  var lg3=ctx.createLinearGradient(gunesX,cy,dunyaX,cy);
+  lg3.addColorStop(0,'rgba(255,220,80,0.15)');
+  lg3.addColorStop(0.5,'rgba(255,220,80,0.08)');
+  lg3.addColorStop(1,'rgba(255,220,80,0.02)');
+  ctx.fillStyle=lg3;
+  ctx.fillRect(gunesX,cy-30,dunyaX-gunesX,60);
+
+  // Güneş
+  var gH=ctx.createRadialGradient(gunesX,cy,20,gunesX,cy,50);
+  gH.addColorStop(0,'rgba(255,200,50,0.2)');
+  gH.addColorStop(1,'rgba(255,100,0,0)');
+  ctx.fillStyle=gH;
+  ctx.beginPath(); ctx.arc(gunesX,cy,50,0,Math.PI*2); ctx.fill();
+  var gG3=ctx.createRadialGradient(gunesX-6,cy-6,2,gunesX,cy,26);
+  gG3.addColorStop(0,'#fffde0');
+  gG3.addColorStop(0.4,'#ffe060');
+  gG3.addColorStop(1,'#ff8800');
+  ctx.fillStyle=gG3;
+  ctx.beginPath(); ctx.arc(gunesX,cy,26,0,Math.PI*2); ctx.fill();
+
+  // Gölge
+  var ayRadius=14;
+  var overlap=Math.max(0,(dunyaX-20)-(ayX+ayRadius));
+  if(overlap<60){
+    var shadowAlpha=Math.max(0,Math.min(0.7,1-overlap/20));
+    // Gölge konisi
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(ayX,cy-ayRadius);
+    ctx.lineTo(dunyaX,cy-25);
+    ctx.lineTo(dunyaX,cy+25);
+    ctx.lineTo(ayX,cy+ayRadius);
+    ctx.closePath();
+    ctx.fillStyle='rgba(0,0,20,'+(shadowAlpha*0.5)+')';
+    ctx.fill();
+    ctx.restore();
+    var sg=ctx.createRadialGradient(dunyaX,cy,0,dunyaX,cy,40);
+    sg.addColorStop(0,'rgba(0,0,0,'+shadowAlpha+')');
+    sg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=sg;
+    ctx.beginPath(); ctx.arc(dunyaX,cy,40,0,Math.PI*2); ctx.fill();
+  }
+
+  // Korona efekti (tutulma anında)
+  if(overlap<25 && overlap>5){
+    var coronaAlpha=Math.max(0,1-overlap/25)*0.4;
+    var cr=ctx.createRadialGradient(ayX,cy,ayRadius,ayX,cy,ayRadius*2.5);
+    cr.addColorStop(0,'rgba(255,255,240,'+coronaAlpha+')');
+    cr.addColorStop(0.5,'rgba(255,220,180,'+(coronaAlpha*0.5)+')');
+    cr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=cr;
+    ctx.beginPath(); ctx.arc(ayX,cy,ayRadius*2.5,0,Math.PI*2); ctx.fill();
+  }
+
+  // Dünya
+  var dG2=ctx.createRadialGradient(dunyaX-7,cy-7,2,dunyaX,cy,20);
+  dG2.addColorStop(0,'#88ddff');
+  dG2.addColorStop(0.4,'#2277ff');
+  dG2.addColorStop(1,'#003388');
+  ctx.fillStyle=dG2;
+  ctx.beginPath(); ctx.arc(dunyaX,cy,20,0,Math.PI*2); ctx.fill();
+
+  // Ay
+  var aG3=ctx.createRadialGradient(ayX-4,cy-4,1,ayX,cy,ayRadius);
+  aG3.addColorStop(0,'#d0d0d0');
+  aG3.addColorStop(0.6,'#999');
+  aG3.addColorStop(1,'#555');
+  ctx.fillStyle=aG3;
+  ctx.beginPath(); ctx.arc(ayX,cy,ayRadius,0,Math.PI*2); ctx.fill();
+
+  // Etiketler
+  ctx.font='10px Poppins,sans-serif';
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,210,60,0.7)';
+  ctx.fillText('Güneş',gunesX,cy+34);
+  ctx.fillStyle='rgba(180,180,200,0.7)';
+  ctx.fillText('Ay',ayX,cy+ayRadius+14);
+  ctx.fillStyle='rgba(93,173,226,0.7)';
+  ctx.fillText('Dünya',dunyaX,cy+28);
+}
+
+function gunesTutulmaOynat(){
+  var btn=document.getElementById('btnGunesTutulma');
+  var durum=document.getElementById('gtDurum');
+  if(gtOynatiliyor){
+    gtOynatiliyor=false;
+    if(gtAnimId) cancelAnimationFrame(gtAnimId);
+    btn.textContent='▶ Oynat'; btn.className='btn btn-primary';
+    durum.textContent='';
+    gtAyX=gtCanvas.width*0.15;
+    gunesTutulmaCiz(gtAyX);
+    return;
+  }
+  gtOynatiliyor=true;
+  gtAyX=gtCanvas.width*0.15;
+  btn.textContent='⏹ Durdur'; btn.className='btn btn-secondary';
+  var hedef=gtCanvas.width*0.85;
+  var W=gtCanvas.width;
+
+  function adim(){
+    if(!gtOynatiliyor) return;
+    gtAyX+=(hedef-gtAyX)*0.012+1.0;
+    gunesTutulmaCiz(gtAyX);
+
+    // Durum mesajları
+    var oran=(gtAyX-W*0.15)/(hedef-W*0.15);
+    if(oran<0.3) durum.textContent='Ay yaklaşıyor...';
+    else if(oran<0.5) durum.textContent='Parçalı tutulma başlıyor...';
+    else if(oran<0.65) durum.textContent='⭐ TAM TUTULMA — Korona görünüyor!';
+    else if(oran<0.8) durum.textContent='Ay geçiyor, ışık geri dönüyor...';
+    else durum.textContent='Tutulma sona erdi';
+
+    if(gtAyX<hedef){
+      gtAnimId=requestAnimationFrame(adim);
+    } else {
+      gtOynatiliyor=false;
+      btn.textContent='↺ Tekrar Oynat'; btn.className='btn btn-primary';
+      setTimeout(function(){ durum.textContent=''; },2000);
+    }
+  }
+  adim();
+}
+
+function ayTutulmaCiz(ayX){
+  var ctx=atCtx, W=atCanvas.width, H=atCanvas.height, cy=H/2;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#05080f';
+  ctx.fillRect(0,0,W,H);
+
+  for(var s=0;s<20;s++){
+    ctx.fillStyle='rgba(200,210,230,'+(0.1+0.15*Math.sin(uzayT*0.5+s*3))+')';
+    ctx.beginPath(); ctx.arc((s*83)%W,(s*51)%H,0.5,0,Math.PI*2); ctx.fill();
+  }
+
+  var gunesX=W*0.1, dunyaX=W*0.45, ayRadius=13;
+
+  // Işık
+  var lg4=ctx.createLinearGradient(gunesX,cy,W,cy);
+  lg4.addColorStop(0,'rgba(255,220,80,0.12)');
+  lg4.addColorStop(0.35,'rgba(255,220,80,0.06)');
+  lg4.addColorStop(1,'rgba(255,220,80,0)');
+  ctx.fillStyle=lg4;
+  ctx.fillRect(gunesX,cy-35,dunyaX-gunesX,70);
+
+  // Gölge konisi
+  var shadowX=dunyaX+18;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(dunyaX,cy-20);
+  ctx.lineTo(W,cy-35);
+  ctx.lineTo(W,cy+35);
+  ctx.lineTo(dunyaX,cy+20);
+  ctx.closePath();
+  var shadowGrad=ctx.createLinearGradient(shadowX,cy,W,cy);
+  shadowGrad.addColorStop(0,'rgba(0,0,20,0.75)');
+  shadowGrad.addColorStop(0.4,'rgba(0,0,20,0.3)');
+  shadowGrad.addColorStop(1,'rgba(0,0,20,0)');
+  ctx.fillStyle=shadowGrad;
+  ctx.fill();
+  ctx.restore();
+
+  // Güneş
+  var g2H=ctx.createRadialGradient(gunesX,cy,18,gunesX,cy,46);
+  g2H.addColorStop(0,'rgba(255,200,50,0.18)');
+  g2H.addColorStop(1,'rgba(255,100,0,0)');
+  ctx.fillStyle=g2H;
+  ctx.beginPath(); ctx.arc(gunesX,cy,46,0,Math.PI*2); ctx.fill();
+  var g2G=ctx.createRadialGradient(gunesX-7,cy-7,2,gunesX,cy,24);
+  g2G.addColorStop(0,'#fffde0');
+  g2G.addColorStop(0.4,'#ffe060');
+  g2G.addColorStop(1,'#ff8800');
+  ctx.fillStyle=g2G;
+  ctx.beginPath(); ctx.arc(gunesX,cy,24,0,Math.PI*2); ctx.fill();
+
+  // Dünya
+  var d2G=ctx.createRadialGradient(dunyaX-7,cy-7,2,dunyaX,cy,20);
+  d2G.addColorStop(0,'#88ddff');
+  d2G.addColorStop(0.4,'#2277ff');
+  d2G.addColorStop(1,'#003388');
+  ctx.fillStyle=d2G;
+  ctx.beginPath(); ctx.arc(dunyaX,cy,20,0,Math.PI*2); ctx.fill();
+
+  // Ay
+  var inShadow=ayX>dunyaX+14;
+  var a2G;
+  if(inShadow){
+    // Kırmızımsı atmosferik kırınım
+    var redAmount=Math.min(1,(ayX-(dunyaX+14))/60);
+    a2G=ctx.createRadialGradient(ayX-4,cy-4,1,ayX,cy,ayRadius);
+    a2G.addColorStop(0,'rgba('+(180+40*redAmount)+','+(50+20*redAmount)+','+(20+10*redAmount)+',1)');
+    a2G.addColorStop(0.5,'rgba('+(120+30*redAmount)+','+Math.round(30*redAmount)+','+Math.round(10*redAmount)+',1)');
+    a2G.addColorStop(1,'rgba(60,10,0,1)');
+  } else {
+    a2G=ctx.createRadialGradient(ayX-4,cy-4,1,ayX,cy,ayRadius);
+    a2G.addColorStop(0,'#e0e0e0');
+    a2G.addColorStop(0.6,'#aaa');
+    a2G.addColorStop(1,'#555');
+  }
+  ctx.fillStyle=a2G;
+  ctx.beginPath(); ctx.arc(ayX,cy,ayRadius,0,Math.PI*2); ctx.fill();
+
+  // Atmosferik kırınım halesi (gölgede iken)
+  if(inShadow){
+    var haloA=Math.min(0.3,(ayX-(dunyaX+14))/100);
+    var halo=ctx.createRadialGradient(ayX,cy,ayRadius,ayX,cy,ayRadius*1.5);
+    halo.addColorStop(0,'rgba(200,60,30,'+haloA+')');
+    halo.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=halo;
+    ctx.beginPath(); ctx.arc(ayX,cy,ayRadius*1.5,0,Math.PI*2); ctx.fill();
+  }
+
+  // Etiketler
+  ctx.font='10px Poppins,sans-serif';
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,210,60,0.7)';
+  ctx.fillText('Güneş',gunesX,cy+32);
+  ctx.fillStyle='rgba(93,173,226,0.7)';
+  ctx.fillText('Dünya',dunyaX,cy+28);
+  ctx.fillStyle=inShadow?'rgba(255,100,60,0.8)':'rgba(180,180,200,0.7)';
+  ctx.fillText(inShadow?'Kan Ayı':'Ay',ayX,cy+ayRadius+14);
+}
+
+function ayTutulmaOynat(){
+  var btn=document.getElementById('btnAyTutulma');
+  var durum=document.getElementById('atDurum');
+  if(atOynatiliyor){
+    atOynatiliyor=false;
+    if(atAnimId) cancelAnimationFrame(atAnimId);
+    btn.textContent='▶ Oynat'; btn.className='btn btn-secondary';
+    durum.textContent='';
+    atAyX=atCanvas.width*0.3;
+    ayTutulmaCiz(atAyX);
+    return;
+  }
+  atOynatiliyor=true;
+  atAyX=atCanvas.width*0.3;
+  btn.textContent='⏹ Durdur'; btn.className='btn btn-primary';
+  var hedef2=atCanvas.width*0.85;
+  var W=atCanvas.width;
+
+  function adim2(){
+    if(!atOynatiliyor) return;
+    atAyX+=(hedef2-atAyX)*0.01+0.8;
+    ayTutulmaCiz(atAyX);
+
+    var oran2=(atAyX-W*0.3)/(hedef2-W*0.3);
+    if(oran2<0.2) durum.textContent='Ay yaklaşıyor...';
+    else if(oran2<0.4) durum.textContent='Yarı gölgeye giriyor...';
+    else if(oran2<0.65) durum.textContent='🔴 KAN AYI — Atmosfer kırmızı ışığı kırıyor!';
+    else if(oran2<0.8) durum.textContent='Gölgeden çıkıyor...';
+    else durum.textContent='Tutulma sona erdi';
+
+    if(atAyX<hedef2){
+      atAnimId=requestAnimationFrame(adim2);
+    } else {
+      atOynatiliyor=false;
+      btn.textContent='↺ Tekrar Oynat'; btn.className='btn btn-secondary';
+      setTimeout(function(){ durum.textContent=''; },2000);
+    }
+  }
+  adim2();
+}
+
+/* ======== BÖLÜM 6: CİSİM BİLGİ PANELLERİ ======== */
+function cisimDetayGoster(el){
+  el.classList.toggle('acik');
+}
+
+/* ======== BÖLÜM 7: GEZEGEN HARİTASI ======== */
+var haritaCanvas2, haritaCtx, haritaW, haritaH;
+var seciliGezegen=null;
+
+function haritaBoyutlandir(){
+  haritaCanvas2=document.getElementById('haritaCanvas');
+  haritaCtx=haritaCanvas2.getContext('2d');
+  haritaCanvas2.width=haritaCanvas2.offsetWidth||800;
+  haritaCanvas2.height=200;
+  haritaW=haritaCanvas2.width;
+  haritaH=haritaCanvas2.height;
+  haritaCiz();
+}
+
+function haritaCiz(){
+  var ctx=haritaCtx;
+  ctx.clearRect(0,0,haritaW,haritaH);
+
+  // Arka plan
+  var bg2=ctx.createLinearGradient(0,0,haritaW,0);
+  bg2.addColorStop(0,'#08060f');
+  bg2.addColorStop(0.5,'#050812');
+  bg2.addColorStop(1,'#08060f');
+  ctx.fillStyle=bg2;
+  ctx.fillRect(0,0,haritaW,haritaH);
+
+  // Mini yıldızlar
+  for(var s=0;s<40;s++){
+    ctx.fillStyle='rgba(200,210,230,'+(0.1+0.1*Math.sin(s*1.7))+')';
+    ctx.beginPath();
+    ctx.arc((s*47+13)%haritaW,(s*31+7)%haritaH,0.4,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  var cy=haritaH/2;
+
+  // Gezegenleri çiz
+  for(var i=0;i<GEZEGENLER.length;i++){
+    var g=GEZEGENLER[i];
+    var gx=g.pos*haritaW;
+    var gy=cy;
+
+    // Asteroid kuşağı özel
+    if(g.ad==='Asteroid Kuşağı'){
+      for(var a=0;a<25;a++){
+        var ax3=gx-15+(a*2.7)%30;
+        var ay3=cy-20+(a*7.3)%40;
+        ctx.fillStyle='rgba(140,120,100,'+(0.2+0.15*Math.sin(a*0.8))+')';
+        ctx.beginPath();
+        ctx.arc(ax3,ay3,0.8+Math.random()*0.8,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.fillStyle='rgba(160,140,120,0.5)';
+      ctx.font='8px Poppins,sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText('Asteroid',gx,cy+30);
+      ctx.fillText('Kuşağı',gx,cy+40);
+      continue;
+    }
+
+    var gr=Math.max(g.r*(haritaW/800),2);
+
+    // Seçili halo
+    if(seciliGezegen===i){
+      ctx.strokeStyle='rgba(93,173,226,0.5)';
+      ctx.lineWidth=2;
+      ctx.setLineDash([3,3]);
+      ctx.beginPath();
+      ctx.arc(gx,gy,gr+6,0,Math.PI*2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Güneş özel parıltısı
+    if(i===0){
+      var sh=ctx.createRadialGradient(gx,gy,gr*0.5,gx,gy,gr*2);
+      sh.addColorStop(0,'rgba(255,200,50,0.2)');
+      sh.addColorStop(1,'rgba(255,100,0,0)');
+      ctx.fillStyle=sh;
+      ctx.beginPath(); ctx.arc(gx,gy,gr*2,0,Math.PI*2); ctx.fill();
+    }
+
+    // Gezegen gövdesi
+    var gg=ctx.createRadialGradient(gx-gr*0.3,gy-gr*0.3,gr*0.1,gx,gy,gr);
+    gg.addColorStop(0,lighten(g.renk,40));
+    gg.addColorStop(1,g.renk);
+    ctx.fillStyle=gg;
+    ctx.beginPath();
+    ctx.arc(gx,gy,gr,0,Math.PI*2);
+    ctx.fill();
+
+    // Satürn halkası
+    if(g.ad==='Satürn'){
+      ctx.strokeStyle='rgba(200,180,130,0.5)';
+      ctx.lineWidth=1.5;
+      ctx.beginPath();
+      ctx.ellipse(gx,gy,gr*1.8,gr*0.35,0,0,Math.PI*2);
+      ctx.stroke();
+    }
+
+    // Jüpiter ince halkası
+    if(g.ad==='Jüpiter'){
+      ctx.strokeStyle='rgba(180,150,100,0.15)';
+      ctx.lineWidth=0.8;
+      ctx.beginPath();
+      ctx.ellipse(gx,gy,gr*1.3,gr*0.15,0,0,Math.PI*2);
+      ctx.stroke();
+    }
+
+    // Etiket
+    ctx.fillStyle='rgba(200,210,230,0.6)';
+    ctx.font=(g.r>10?'9':'7')+'px Poppins,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(g.ad,gx,gy+gr+12);
+  }
+}
+
+function lighten(hex,amount){
+  var r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  r=Math.min(255,r+amount); g=Math.min(255,g+amount); b=Math.min(255,b+amount);
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+
+// Harita tıklama
+function haritaTiklama(e){
+  var rect=haritaCanvas2.getBoundingClientRect();
+  var mx=(e.clientX-rect.left)*(haritaCanvas2.width/rect.width);
+  var my=(e.clientY-rect.top)*(haritaCanvas2.height/rect.height);
+
+  var enYakin=-1, enMesafe=Infinity;
+  for(var i=0;i<GEZEGENLER.length;i++){
+    if(GEZEGENLER[i].ad==='Asteroid Kuşağı') continue;
+    var gx=GEZEGENLER[i].pos*haritaW;
+    var gy=haritaH/2;
+    var gr=Math.max(GEZEGENLER[i].r*(haritaW/800),2);
+    var mesafe=Math.sqrt((mx-gx)*(mx-gx)+(my-gy)*(my-gy));
+    if(mesafe<gr+15 && mesafe<enMesafe){
+      enYakin=i; enMesafe=mesafe;
+    }
+  }
+
+  // Asteroid kuşağı özel
+  var akX=GEZEGENLER[5].pos*haritaW;
+  if(Math.abs(mx-akX)<20 && Math.abs(my-haritaH/2)<25){
+    enYakin=5;
+  }
+
+  if(enYakin>=0){
+    gezegenSec(enYakin);
+  }
+}
+
+function gezegenSec(idx){
+  seciliGezegen=idx;
+  haritaCiz();
+
+  var g=GEZEGENLER[idx];
+  var kart=document.getElementById('gezegenKart');
+  kart.innerHTML=
+    '<span class="gb-emoji">'+g.emoji+'</span>'+
+    '<div class="gb-ad">'+g.ad+'</div>'+
+    '<div class="gb-tip">'+g.tip+'</div>'+
+    '<p class="gb-bilgi">'+g.bilgi+'</p>'+
+    '<div class="gb-ilginc">'+g.ilginc+'</div>'+
+    '<p style="font-size:0.72rem;color:var(--text2);margin-top:8px;"><strong style="color:var(--cyan);">Boyut:</strong> '+g.boyut+'</p>';
+
+  // Chip güncelle
+  var chips=document.querySelectorAll('.gezegen-chip');
+  chips.forEach(function(c,i){ c.classList.toggle('aktif',i===idx); });
+}
+
+function gezegenChipOlustur(){
+  var row=document.getElementById('gezegenChipRow');
+  GEZEGENLER.forEach(function(g,i){
+    var chip=document.createElement('button');
+    chip.className='gezegen-chip';
+    chip.textContent=g.emoji+' '+g.ad;
+    chip.onclick=function(){ gezegenSec(i); };
+    row.appendChild(chip);
+  });
+}
+
+/* ======== BAŞLATMA ======== */
+function tumunuBaslat(){
+  uzayBoyutlandir();
+  daBoyutlandir();
+  diyagramBoyutlandir();
+  tutulmaBoyutlandir();
+  haritaBoyutlandir();
+
+  evreGridOlustur();
+  chipRowOlustur();
+  gezegenChipOlustur();
+
+  diyagramAniAci=EVRE_ACILAR[0];
+  diyagramCiz();
+
+  requestAnimationFrame(uzayCiz);
+  requestAnimationFrame(daCiz);
+
+  haritaCanvas2.addEventListener('click',haritaTiklama);
+}
+
+window.addEventListener('load',tumunuBaslat);
+window.addEventListener('resize',function(){
+  uzayBoyutlandir();
+  daBoyutlandir();
+  diyagramBoyutlandir();
+  tutulmaBoyutlandir();
+  haritaBoyutlandir();
+});
+</script>
+</body>
+</html>

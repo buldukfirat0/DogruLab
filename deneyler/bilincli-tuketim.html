@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bilinçli Tüketim Günlüğü | DoğruLab</title>
+  <link rel="stylesheet" href="../assets/dogrulab.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    /* Haftalık takip tablosu */
+    .haftalik-grid {
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+    .haftalik-grid table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      min-width: 560px;
+    }
+    .haftalik-grid th {
+      text-align: center;
+      padding: 8px 6px;
+      font-size: 0.78rem;
+    }
+    .haftalik-grid td {
+      text-align: center;
+      padding: 5px 4px;
+    }
+    .haftalik-grid td input {
+      width: 70px;
+      text-align: center;
+      padding: 5px 4px;
+    }
+    .haftalik-grid .satir-baslik {
+      text-align: left;
+      font-weight: 600;
+      color: var(--h3);
+      white-space: nowrap;
+      padding-left: 10px;
+    }
+
+    /* Karşılaştırma barları */
+    .tuketim-karsilastirma { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .tk-satir { display: flex; flex-direction: column; gap: 6px; }
+    .tk-satir .tk-baslik { font-size: 0.8rem; font-weight: 600; color: var(--text2); }
+    .tk-barlar { display: flex; flex-direction: column; gap: 4px; }
+    .tk-bar-row { display: flex; align-items: center; gap: 10px; }
+    .tk-bar-row span { font-size: 0.72rem; color: var(--text2); min-width: 70px; }
+    .tk-bar-bg { flex: 1; height: 16px; background: var(--border2); border-radius: 8px; overflow: hidden; position: relative; }
+    .tk-bar-fill { height: 100%; border-radius: 8px; transition: width 0.5s ease; min-width: 4px; }
+    .tk-bar-kullanici { background: linear-gradient(90deg, var(--cyan), var(--teal)); }
+    .tk-bar-ortalama { background: linear-gradient(90deg, #555, #333); }
+    .badge-tasarruf {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+    .badge-tasarruf.iyi { background: rgba(86,211,100,0.15); color: var(--green); border: 1px solid rgba(86,211,100,0.3); }
+    .badge-tasarruf.fazla { background: rgba(248,81,73,0.12); color: var(--red); border: 1px solid rgba(248,81,73,0.25); }
+
+    /* Geri dönüşüm sayacı */
+    .gd-sayac { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .gd-btn-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .gd-btn {
+      width: 72px; height: 56px;
+      border-radius: 12px;
+      border: 1px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-family: inherit;
+    }
+    .gd-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .gd-btn:active { transform: scale(0.94); }
+    .gd-btn .gd-emoji { font-size: 1.2rem; }
+    .gd-count {
+      font-size: 0.72rem;
+      color: var(--text2);
+      text-align: center;
+      min-width: 72px;
+    }
+    .gd-count strong { color: var(--teal); }
+    .co2-panel {
+      background: rgba(72,201,176,0.08);
+      border: 1px solid rgba(72,201,176,0.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+    }
+    .co2-panel .co2-sayi {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--teal);
+    }
+    .co2-panel .co2-label { color: var(--text2); font-size: 0.78rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="../index.html">⚗️ DoğruLab</a>
+  <div class="deney-badge">Yaşam Bilimi · 6. Sınıf</div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <span class="hero-emoji">♻️</span>
+    <h1>Bilinçli Tüketim Günlüğü</h1>
+    <p>Bir hafta boyunca su, elektrik tüketimini ve geri dönüşüm alışkanlıklarını takip et. Farkındalık ile tasarrufu keşfet.</p>
+    <div class="meta-row">
+      <span class="meta-chip sinif">Yaşam Bilimi · 6. Sınıf</span>
+      <span class="meta-chip sure">⏱ 1 Hafta</span>
+      <span class="meta-chip zorluk">✦ Kolay</span>
+    </div>
+  </div>
+
+  <!-- TEORİK BİLGİ -->
+  <section>
+    <div class="section-title"><span>📖</span> Teorik Bilgi</div>
+    <div class="card">
+      <p>Kaynaklar sınırlıdır: su, elektrik ve doğalgaz küresel ölçekte hızla tükenmektedir. Bilinçli tüketim bu süreci yavaşlatır.</p>
+
+      <div class="note-box" style="margin-top:14px;">
+        <strong>Türkiye'de Ortalama Tüketim</strong>
+        Ortalama bir Türk ailesi günde 150–200 litre su kullanır. Farkındalıkla bu miktar %20–30 azaltılabilir.
+      </div>
+
+      <div class="formul-card">
+        <div class="formul">3R: Azalt · Yeniden Kullan · Geri Dönüştür</div>
+        <div class="formul-aciklama">
+          <span><strong>Reduce</strong> = Azalt</span>
+          <span><strong>Reuse</strong> = Yeniden Kullan</span>
+          <span><strong>Recycle</strong> = Geri Dönüştür</span>
+        </div>
+      </div>
+
+      <div class="note-box yesil">
+        <strong>Geri Dönüşümün Önemi</strong>
+        Geri dönüştürülen 1 ton kağıt = 17 ağaç + 26.000 litre su tasarrufu demektir.
+      </div>
+
+      <div class="note-box turuncu">
+        <strong>CO₂ Etkisi</strong>
+        Plastik geri dönüşümü, üretim aşamasına kıyasla %70 daha az CO₂ salınımı sağlar.
+      </div>
+    </div>
+  </section>
+
+  <!-- HAFTALIK TAKİP TABLOSU -->
+  <section>
+    <div class="section-title"><span>📊</span> Haftalık Takip Tablosu</div>
+    <div class="card">
+
+      <div class="haftalik-grid">
+        <table id="haftalikTablo">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding-left:10px;">Ölçüm</th>
+              <th>Pazartesi</th>
+              <th>Salı</th>
+              <th>Çarşamba</th>
+              <th>Perşembe</th>
+              <th>Cuma</th>
+              <th>Cumartesi</th>
+              <th>Pazar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="satir-baslik">💧 Su (litre/gün)</td>
+              <td><input type="number" min="0" max="500" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="500" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="500" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="500" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="500" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="500" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="500" placeholder="0" oninput="toplamGuncelle()"></td>
+            </tr>
+            <tr>
+              <td class="satir-baslik">⚡ Elektrik (kWh/gün)</td>
+              <td><input type="number" min="0" max="50" step="0.1" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" step="0.1" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" step="0.1" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" step="0.1" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" step="0.1" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" step="0.1" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" step="0.1" placeholder="0" oninput="toplamGuncelle()"></td>
+            </tr>
+            <tr>
+              <td class="satir-baslik">♻️ Geri Dönüşüm (adet)</td>
+              <td><input type="number" min="0" max="50" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" placeholder="0" oninput="toplamGuncelle()"></td>
+              <td><input type="number" min="0" max="50" placeholder="0" oninput="toplamGuncelle()"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Karşılaştırma paneli -->
+      <div class="tuketim-karsilastirma" id="karsilastirmaPanel">
+
+        <div class="tk-satir">
+          <div class="tk-baslik">💧 Su Tüketimi — Haftalık Toplam</div>
+          <div class="tk-barlar">
+            <div class="tk-bar-row">
+              <span id="lblSuKullanici">Senin: 0 L</span>
+              <div class="tk-bar-bg"><div class="tk-bar-fill tk-bar-kullanici" id="barSuKullanici" style="width:0%;"></div></div>
+            </div>
+            <div class="tk-bar-row">
+              <span>Ortalama: 1050 L</span>
+              <div class="tk-bar-bg"><div class="tk-bar-fill tk-bar-ortalama" style="width:100%;"></div></div>
+            </div>
+          </div>
+          <span class="badge-tasarruf iyi" id="badgeSu" style="display:none;">✅ Tasarruf Ettin!</span>
+          <span class="badge-tasarruf fazla" id="badgeSuFazla" style="display:none;">⚠️ Fazla Tüketim</span>
+        </div>
+
+        <div class="tk-satir">
+          <div class="tk-baslik">⚡ Elektrik Tüketimi — Haftalık Toplam</div>
+          <div class="tk-barlar">
+            <div class="tk-bar-row">
+              <span id="lblElektrikKullanici">Senin: 0 kWh</span>
+              <div class="tk-bar-bg"><div class="tk-bar-fill tk-bar-kullanici" id="barElektrikKullanici" style="width:0%;"></div></div>
+            </div>
+            <div class="tk-bar-row">
+              <span>Ortalama: 24.5 kWh</span>
+              <div class="tk-bar-bg"><div class="tk-bar-fill tk-bar-ortalama" style="width:100%;"></div></div>
+            </div>
+          </div>
+          <span class="badge-tasarruf iyi" id="badgeElek" style="display:none;">✅ Tasarruf Ettin!</span>
+          <span class="badge-tasarruf fazla" id="badgeElekFazla" style="display:none;">⚠️ Fazla Tüketim</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- GERİ DÖNÜŞÜM SAYACI -->
+  <section>
+    <div class="section-title"><span>🗑️</span> Geri Dönüşüm Sayacı</div>
+    <div class="card">
+      <p style="font-size:0.85rem;color:var(--text2);margin-bottom:14px;">Hafta boyunca geri dönüştürdüğün her ürün için butona bas.</p>
+
+      <div class="gd-sayac">
+        <div class="gd-btn-wrap">
+          <button class="gd-btn" onclick="gdEkle('plastik')">
+            <span class="gd-emoji">🧴</span>
+            <span>+Plastik</span>
+          </button>
+          <div class="gd-count">Adet: <strong id="gdPlastik">0</strong></div>
+        </div>
+        <div class="gd-btn-wrap">
+          <button class="gd-btn" onclick="gdEkle('kagit')">
+            <span class="gd-emoji">📄</span>
+            <span>+Kağıt</span>
+          </button>
+          <div class="gd-count">Adet: <strong id="gdKagit">0</strong></div>
+        </div>
+        <div class="gd-btn-wrap">
+          <button class="gd-btn" onclick="gdEkle('cam')">
+            <span class="gd-emoji">🍾</span>
+            <span>+Cam</span>
+          </button>
+          <div class="gd-count">Adet: <strong id="gdCam">0</strong></div>
+        </div>
+        <div class="gd-btn-wrap">
+          <button class="gd-btn" onclick="gdEkle('metal')">
+            <span class="gd-emoji">🥫</span>
+            <span>+Metal</span>
+          </button>
+          <div class="gd-count">Adet: <strong id="gdMetal">0</strong></div>
+        </div>
+        <div class="gd-btn-wrap">
+          <button class="gd-btn btn-danger" onclick="gdSifirla()" style="font-size:0.75rem;">
+            <span class="gd-emoji">↺</span>
+            <span>Sıfırla</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="co2-panel">
+        <div class="co2-label">Kurtardığın CO₂ tahmini</div>
+        <div class="co2-sayi" id="co2Deger">0.00 kg</div>
+        <div class="co2-label" style="margin-top:4px;">
+          Plastik×0.04 + Kağıt×0.03 + Cam×0.02 + Metal×0.06 kg CO₂/adet
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="note-box yesil">
+    💧 Bir diş fırçalarken musluğu kapatmak haftada 150 litre su tasarrufu sağlar!
+  </div>
+
+  <div class="note-box turuncu" style="margin-top:12px;">
+    ⚡ Kullanmadığın cihazları fişten çekmek yıllık elektrik faturanı %10 azaltabilir.
+  </div>
+
+  <!-- DENEY ADIMLARI -->
+  <section style="margin-top:24px;">
+    <div class="section-title"><span>🧪</span> Deney Adımları</div>
+    <ul class="adimlar-list">
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">1</div>
+        <div class="adim-check"></div>
+        <div class="adim-text">Günlük kullandığın su miktarını tahmin et: <strong>kaç bardak içtin, kaç dakika duş aldın?</strong></div>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">2</div>
+        <div class="adim-check"></div>
+        <div class="adim-text">Evinizdeki <strong>elektrik sayacını</strong> izin alarak kontrol et. Sabah ve akşam değerini kaydet.</div>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">3</div>
+        <div class="adim-check"></div>
+        <div class="adim-text">Günlük attığın çöpü <strong>kategorilere ayır</strong>: plastik, kağıt, cam, metal.</div>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">4</div>
+        <div class="adim-check"></div>
+        <div class="adim-text">Bu işlemi <strong>7 gün boyunca</strong> tekrarla. Her gün aynı saatte kaydet.</div>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">5</div>
+        <div class="adim-check"></div>
+        <div class="adim-text">Hafta sonunda tablonu incele. <strong>Hangi gün en çok tüketildi?</strong> Sebebini düşün.</div>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <div class="adim-no">6</div>
+        <div class="adim-check"></div>
+        <div class="adim-text">Tasarruf edebileceğin <strong>3 yol</strong> yaz. Aileninle paylaş ve birlikte uygula.</div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- GÖZLEM DEFTERİ -->
+  <section>
+    <div class="section-title"><span>📝</span> Gözlem Defteri</div>
+    <div class="card">
+      <div class="tablo-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Hafta</th>
+              <th>Toplam Su (L)</th>
+              <th>Toplam Elektrik (kWh)</th>
+              <th>Geri Dönüşüm (adet)</th>
+              <th>Fark (Önceki Haftaya Göre)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1. Hafta</td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0" step="0.1"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="text" placeholder="—"></td>
+            </tr>
+            <tr>
+              <td>2. Hafta</td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0" step="0.1"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="text" placeholder="Artış/Azalış %"></td>
+            </tr>
+            <tr>
+              <td>3. Hafta</td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0" step="0.1"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="text" placeholder="Artış/Azalış %"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Tasarruf İçin 3 Önerin</label>
+        <textarea placeholder="1. ... 2. ... 3. ... Ailende bu önerileri uyguladın mı? Sonuçları yaz."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Bu Deneyi Sana Ne Öğretti?</label>
+        <textarea placeholder="Bilinçli tüketim hakkında ne düşünüyorsun? Hangi alışkanlığını değiştirmeyi planlıyorsun?"></textarea>
+      </div>
+
+      <button class="kaydet-btn" onclick="kaydet()">💾 Gözlem Raporunu Kaydet</button>
+    </div>
+  </section>
+
+  <!-- QR KOD -->
+  <section>
+    <div class="section-title"><span>📱</span> QR Kodu</div>
+    <div class="card">
+      <div class="qr-section">
+        <div id="qrcode"></div>
+        <div class="qr-info">
+          <h3>Paylaş</h3>
+          <p>QR kodu tarayarak bu deney sayfasına doğrudan erişebilirsin. Arkadaşlarınla veya öğretmeninle paylaş.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="../assets/dogrulab.js"></script>
+<script>
+// ── Haftalık Takip Hesaplamaları ──
+var SU_ORTALAMA    = 1050;  // litre/hafta
+var ELEK_ORTALAMA  = 24.5;  // kWh/hafta
+
+function toplamGuncelle() {
+  var satirlar = document.querySelectorAll('#haftalikTablo tbody tr');
+
+  // Su satırı (0. satır)
+  var suGirdiler = satirlar[0].querySelectorAll('input');
+  var toplamSu = 0;
+  suGirdiler.forEach(function(inp) { toplamSu += parseFloat(inp.value) || 0; });
+
+  // Elektrik satırı (1. satır)
+  var elGirdiler = satirlar[1].querySelectorAll('input');
+  var toplamEl = 0;
+  elGirdiler.forEach(function(inp) { toplamEl += parseFloat(inp.value) || 0; });
+
+  // Su barı
+  var suOran = Math.min((toplamSu / SU_ORTALAMA) * 100, 200);
+  document.getElementById('barSuKullanici').style.width = Math.min(suOran, 100) + '%';
+  document.getElementById('lblSuKullanici').textContent = 'Senin: ' + toplamSu.toFixed(0) + ' L';
+
+  var badgeSu = document.getElementById('badgeSu');
+  var badgeSuFazla = document.getElementById('badgeSuFazla');
+  if (toplamSu > 0) {
+    if (toplamSu <= SU_ORTALAMA) {
+      badgeSu.style.display = 'inline-block';
+      badgeSuFazla.style.display = 'none';
+    } else {
+      badgeSu.style.display = 'none';
+      badgeSuFazla.style.display = 'inline-block';
+    }
+  } else {
+    badgeSu.style.display = 'none';
+    badgeSuFazla.style.display = 'none';
+  }
+
+  // Elektrik barı
+  var elOran = Math.min((toplamEl / ELEK_ORTALAMA) * 100, 200);
+  document.getElementById('barElektrikKullanici').style.width = Math.min(elOran, 100) + '%';
+  document.getElementById('lblElektrikKullanici').textContent = 'Senin: ' + toplamEl.toFixed(1) + ' kWh';
+
+  var badgeElek = document.getElementById('badgeElek');
+  var badgeElekFazla = document.getElementById('badgeElekFazla');
+  if (toplamEl > 0) {
+    if (toplamEl <= ELEK_ORTALAMA) {
+      badgeElek.style.display = 'inline-block';
+      badgeElekFazla.style.display = 'none';
+    } else {
+      badgeElek.style.display = 'none';
+      badgeElekFazla.style.display = 'inline-block';
+    }
+  } else {
+    badgeElek.style.display = 'none';
+    badgeElekFazla.style.display = 'none';
+  }
+}
+
+// ── Geri Dönüşüm Sayacı ──
+var gdSayilar = { plastik: 0, kagit: 0, cam: 0, metal: 0 };
+
+function gdEkle(tip) {
+  gdSayilar[tip]++;
+  document.getElementById('gd' + tip.charAt(0).toUpperCase() + tip.slice(1)).textContent = gdSayilar[tip];
+
+  // Kagit -> Kagit (ID uyumu)
+  if (tip === 'kagit') document.getElementById('gdKagit').textContent = gdSayilar.kagit;
+
+  co2Guncelle();
+}
+
+function co2Guncelle() {
+  var co2 = gdSayilar.plastik * 0.04
+           + gdSayilar.kagit * 0.03
+           + gdSayilar.cam * 0.02
+           + gdSayilar.metal * 0.06;
+  document.getElementById('co2Deger').textContent = co2.toFixed(2) + ' kg';
+}
+
+function gdSifirla() {
+  gdSayilar = { plastik: 0, kagit: 0, cam: 0, metal: 0 };
+  document.getElementById('gdPlastik').textContent = '0';
+  document.getElementById('gdKagit').textContent = '0';
+  document.getElementById('gdCam').textContent = '0';
+  document.getElementById('gdMetal').textContent = '0';
+  co2Guncelle();
+}
+</script>
+
+</body>
+</html>

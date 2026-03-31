@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DoğruLab — İnteraktif Deney Platformu</title>
+  <link rel="stylesheet" href="assets/dogrulab.css">
+  <style>
+    .index-hero {
+      text-align: center;
+      padding: 64px 20px 48px;
+      animation: fadeUp 0.6s ease-out;
+    }
+
+    .index-hero .logo-big {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #5dade2, #48c9b0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .index-hero p {
+      color: var(--text2);
+      font-size: 1rem;
+      max-width: 540px;
+      margin: 0 auto 32px;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat .sayi {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #5dade2, #48c9b0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat .etk {
+      font-size: 0.75rem;
+      color: var(--text2);
+    }
+
+    .kategori-baslik {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text2);
+      margin: 32px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .kategori-baslik::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .deney-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .deney-kart {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 20px;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .deney-kart:hover {
+      border-color: var(--border);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .deney-kart-ust {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .deney-emoji {
+      font-size: 2rem;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 8px rgba(93,173,226,0.3));
+    }
+
+    .deney-kart h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--h2);
+      line-height: 1.3;
+    }
+
+    .deney-kart p {
+      font-size: 0.78rem;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    .deney-kart-alt {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .chip-kucuk {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    .chip-fizik   { background: rgba(93,173,226,0.12);  color: #5dade2; border: 1px solid rgba(93,173,226,0.25); }
+    .chip-kimya   { background: rgba(137,87,229,0.12);  color: #a57ef0; border: 1px solid rgba(137,87,229,0.25); }
+    .chip-biyoloji{ background: rgba(86,211,100,0.12);  color: #56d364; border: 1px solid rgba(86,211,100,0.25); }
+    .chip-astronomi{ background: rgba(255,166,87,0.12); color: #ffa657; border: 1px solid rgba(255,166,87,0.25); }
+    .chip-yasam   { background: rgba(72,201,176,0.12);  color: #48c9b0; border: 1px solid rgba(72,201,176,0.25); }
+
+    .sure-kucuk { font-size: 0.7rem; color: var(--text2); }
+
+    .acik-btn {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--teal);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text2);
+      font-size: 0.8rem;
+    }
+
+    footer span {
+      background: linear-gradient(135deg, #5dade2, #48c9b0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">⚗️ DoğruLab</div>
+    <div class="deney-badge">MEB Zorunlu Deneyler</div>
+  </header>
+
+  <main style="max-width:960px; margin:0 auto; padding:0 20px 64px;">
+
+    <div class="index-hero">
+      <span class="logo-big">⚗️ DoğruLab</span>
+      <p>Gerçek deneye hazırlan. Önce sanalda dene, sonra güvenle uygula. MEB zorunlu deney setlerinin interaktif simülasyonları.</p>
+      <div class="stats-row">
+        <div class="stat"><div class="sayi">8</div><div class="etk">Deney</div></div>
+        <div class="stat"><div class="sayi">4</div><div class="etk">Ders Alanı</div></div>
+        <div class="stat"><div class="sayi">∞</div><div class="etk">Deneme</div></div>
+        <div class="stat"><div class="sayi">0</div><div class="etk">Malzeme İsrafı</div></div>
+      </div>
+    </div>
+
+    <!-- FİZİK -->
+    <div class="kategori-baslik">⚡ Fizik</div>
+    <div class="deney-grid">
+
+      <a class="deney-kart" href="deneyler/surtunme-kuvveti.html">
+        <div class="deney-kart-ust">
+          <span class="deney-emoji">🧲</span>
+          <div>
+            <h3>Sürtünme Kuvveti Gözlemi</h3>
+            <p>Farklı yüzeylerde sürtünme katsayısını ölç, statik ve kinetik sürtünmeyi karşılaştır.</p>
+          </div>
+        </div>
+        <div class="deney-kart-alt">
+          <span class="chip-kucuk chip-fizik">Fizik · 9. Sınıf</span>
+          <span class="sure-kucuk">⏱ 25 dk</span>
+          <span class="acik-btn">Başla →</span>
+        </div>
+      </a>
+
+      <a class="deney-kart" href="deneyler/golge-deneyi.html">
+        <div class="deney-kart-ust">
+          <span class="deney-emoji">🔦</span>
+          <div>
+            <h3>Gölge Deneyi</h3>
+            <p>Işık kaynağı, cisim ve ekran üçgeninde tam gölge ve yarı gölgenin oluşumunu keşfet.</p>
+          </div>
+        </div>
+        <div class="deney-kart-alt">
+          <span class="chip-kucuk chip-fizik">Fizik · 7. Sınıf</span>
+          <span class="sure-kucuk">⏱ 20 dk</span>
+          <span class="acik-btn">Başla →</span>
+        </div>
+      </a>
+
+      <a class="deney-kart" href="deneyler/elektrik-devresi.html">
+        <div class="deney-kart-ust">
+          <span class="deney-emoji">💡</span>
+          <div>
+            <h3>Elektrik Devresi Kuruyorum</h3>
+            <p>Seri ve paralel devreleri kur, anahtarı kapat, ampullerin yanmasını izle.</p>
+          </div>
+        </div>
+        <div class="deney-kart-alt">
+          <span class="chip-kucuk chip-fizik">Fizik · 7. Sınıf</span>
+          <span class="sure-kucuk">⏱ 30 dk</span>
+          <span class="acik-btn">Başla →</span>
+        </div>
+      </a>
+
+      <a class="deney-kart" href="deneyler/dinamometre.html">
+        <div class="deney-kart-ust">
+          <span class="deney-emoji">🔩</span>
+          <div>
+            <h3>Dinamometre</h3>
+            <p>Hooke yasasını gözlemle. Yayın uzamasını ölç, kuvveti hesapla.</p>
+          </div>
+        </div>
+        <div class="deney-kart-alt">
+          <span class="chip-kucuk chip-fizik">Fizik · 8. Sınıf</span>
+          <span class="sure-kucuk">⏱ 20 dk</span>
+          <span class="acik-btn">Başla →</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- KİMYA -->
+    <div class="kategori-baslik">🧪 Kimya</div>
+    <div class="deney-grid">
+
+      <a class="deney-kart" href="deneyler/karbonat-sirke.html">
+        <div class="deney-kart-ust">
+          <span class="deney-emoji">🫧</span>
+          <div>
+            <h3>Karbonat ve Sirke Tepkimesi</h3>
+            <p>Asit-baz tepkimesini gözlemle. CO₂ kabarcıkları, pH değişimi ve renk indikatörleri.</p>
+          </div>
+        </div>
+        <div class="deney-kart-alt">
+          <span class="chip-kucuk chip-kimya">Kimya · 9. Sınıf</span>
+          <span class="sure-kucuk">⏱ 15 dk</span>
+          <span class="acik-btn">Başla →</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- BİYOLOJİ -->
+    <div class="kategori-baslik">🔬 Biyoloji</div>
+    <div class="deney-grid">
+
+      <a class="deney-kart" href="deneyler/hucre-maketi.html">
+        <div class="deney-kart-ust">
+          <span class="deney-emoji">🦠</span>
+          <div>
+            <h3>Hücre Maketi</h3>
+            <p>Bitki ve hayvan hücrelerinin organellerini keşfet, görevlerini öğren.</p>
+          </div>
+        </div>
+        <div class="deney-kart-alt">
+          <span class="chip-kucuk chip-biyoloji">Biyoloji · 9. Sınıf</span>
+          <span class="sure-kucuk">⏱ 35 dk</span>
+          <span class="acik-btn">Başla →</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- ASTRONOMİ -->
+    <div class="kategori-baslik">🌌 Astronomi</div>
+    <div class="deney-grid">
+
+      <a class="deney-kart" href="deneyler/gunes-ay-dunya.html">
+        <div class="deney-kart-ust">
+          <span class="deney-emoji">🌍</span>
+          <div>
+            <h3>Güneş, Ay ve Dünya Maketi</h3>
+            <p>Güneş sistemindeki boyut oranlarını, yörünge hareketlerini ve ay evrelerini gözlemle.</p>
+          </div>
+        </div>
+        <div class="deney-kart-alt">
+          <span class="chip-kucuk chip-astronomi">Astronomi · 7. Sınıf</span>
+          <span class="sure-kucuk">⏱ 40 dk</span>
+          <span class="acik-btn">Başla →</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- YAŞAM BİLİMİ -->
+    <div class="kategori-baslik">♻️ Yaşam Bilimi</div>
+    <div class="deney-grid">
+
+      <a class="deney-kart" href="deneyler/bilincli-tuketim.html">
+        <div class="deney-kart-ust">
+          <span class="deney-emoji">💧</span>
+          <div>
+            <h3>Bilinçli Tüketim Günlüğü</h3>
+            <p>Haftalık su ve enerji tüketimini izle. Geri dönüşümün önemini verilerle göster.</p>
+          </div>
+        </div>
+        <div class="deney-kart-alt">
+          <span class="chip-kucuk chip-yasam">Yaşam Bilimi · 6. Sınıf</span>
+          <span class="sure-kucuk">⏱ 1 Hafta</span>
+          <span class="acik-btn">Başla →</span>
+        </div>
+      </a>
+
+    </div>
+
+  </main>
+
+  <footer>
+    <p>⚗️ <span>DoğruLab</span> — Deneyi önce sanalda yap, gerçekte mükemmel uygula.</p>
+    <p style="margin-top:6px; font-size:0.72rem;">MEB zorunlu deney setleri · Çevrimdışı çalışır · Uygulama gerektirmez</p>
+  </footer>
+
+</body>
+</html>

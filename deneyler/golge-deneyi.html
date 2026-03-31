@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gölge Deneyi | DoğruLab</title>
+  <link rel="stylesheet" href="../assets/dogrulab.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚗️ DoğruLab</div>
+  <div class="deney-badge">Fizik · 7. Sınıf</div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <span class="hero-emoji">🔦</span>
+    <h1>Gölge Deneyi</h1>
+    <p>Işık, cisim ve ekran üçgeninde tam gölge (umbra) ile yarı gölgenin (penumbra) nasıl oluştuğunu keşfet. Mesafeyi değiştir, gölgenin büyüdüğünü izle.</p>
+    <div class="meta-row">
+      <span class="meta-chip sinif">Fizik · 7. Sınıf</span>
+      <span class="meta-chip sure">⏱ 20 dk</span>
+      <span class="meta-chip zorluk">✦ Kolay</span>
+    </div>
+  </div>
+
+  <!-- TEORİK BİLGİ -->
+  <section>
+    <div class="section-title">📖 Teorik Bilgi</div>
+    <div class="card">
+      <p>Işık, homojen ortamlarda <strong style="color:var(--teal)">düz çizgiler hâlinde</strong> yayılır. Saydam olmayan bir cisim ışığın önüne konulduğunda, cismin arkasındaki yüzeyde <strong style="color:var(--teal)">gölge</strong> oluşur.</p>
+
+      <div class="note-box" style="margin-top:14px;">
+        <strong>Tam Gölge (Umbra)</strong>
+        Işığın hiç ulaşamadığı tamamen karanlık bölgedir. Nokta ışık kaynağında yalnızca tam gölge oluşur.
+      </div>
+
+      <div class="note-box mor">
+        <strong>Yarı Gölge (Penumbra)</strong>
+        Büyük ışık kaynaklarında, tam gölgenin çevresinde ışığın kısmen ulaşabildiği soluk bir bölge oluşur.
+      </div>
+
+      <div class="formul-card">
+        <div class="formul">G / C = E / I</div>
+        <div class="formul-aciklama">
+          <span><strong>G</strong> = Gölge boyu</span>
+          <span><strong>C</strong> = Cisim boyu</span>
+          <span><strong>E</strong> = Cisim-Ekran mesafesi</span>
+          <span><strong>I</strong> = Işık-Cisim mesafesi</span>
+        </div>
+      </div>
+
+      <div class="note-box yesil" style="margin-top:10px;">
+        <strong>Gölge Büyüme Kuralı</strong>
+        Cisim ışığa yaklaştıkça gölge büyür. Cisim ekrandan uzaklaştıkça gölge büyür.
+      </div>
+    </div>
+  </section>
+
+  <!-- SİMÜLASYON -->
+  <section>
+    <div class="section-title">🔬 İnteraktif Simülasyon</div>
+    <div class="sim-container">
+      <div class="sim-canvas-wrap">
+        <canvas id="golgeCanvas" height="260"></canvas>
+      </div>
+      <div class="sim-controls">
+        <!-- Bilgi kartları -->
+        <div class="sim-info-row">
+          <div class="info-card">
+            <div class="label">Gölge Boyutu</div>
+            <div class="value" id="infoGolgeBoy">— cm</div>
+          </div>
+          <div class="info-card">
+            <div class="label">Gölge Türü</div>
+            <div class="value" id="infoGolgeTur">Tam Gölge</div>
+          </div>
+          <div class="info-card">
+            <div class="label">Cisim Şekli</div>
+            <div class="value" id="infoCisim">Küp</div>
+          </div>
+        </div>
+
+        <!-- Kaydırıcılar -->
+        <div class="slider-row">
+          <div class="slider-label">
+            <strong>Işık-Cisim Mesafesi</strong>
+            <span id="lblIsikCisim">20 cm</span>
+          </div>
+          <input type="range" id="sliderIsikCisim" min="5" max="45" value="20" oninput="simGuncelle()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-label">
+            <strong>Cisim-Ekran Mesafesi</strong>
+            <span id="lblCisimEkran">25 cm</span>
+          </div>
+          <input type="range" id="sliderCisimEkran" min="5" max="45" value="25" oninput="simGuncelle()">
+        </div>
+
+        <!-- Şekil seçimi -->
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnKup" onclick="sekil='kup'; simGuncelle(); sekilVurgula()">◼ Küp</button>
+          <button class="btn btn-secondary" id="btnKure" onclick="sekil='kure'; simGuncelle(); sekilVurgula()">● Küre</button>
+          <button class="btn btn-secondary" id="btnPrizma" onclick="sekil='prizma'; simGuncelle(); sekilVurgula()">▲ Prizma</button>
+          <button class="btn btn-secondary" id="btnAnimasyon" onclick="animasyonToggle()">▶ Animasyon</button>
+          <button class="btn btn-danger" onclick="simSifirla()">↺ Sıfırla</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DENEY ADIMLARI -->
+  <section>
+    <div class="section-title">🧪 Deney Adımları</div>
+    <ul class="adimlar-list">
+      <li class="adim-item" onclick="adimToggle(this)">
+        <span class="adim-no">1</span>
+        <div class="adim-check"></div>
+        <span class="adim-text">El fenerini ve strafor şekilleri (küp, küre, prizma) hazırla. Düz bir duvar veya beyaz mukavva ekran olarak kullan.</span>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <span class="adim-no">2</span>
+        <div class="adim-check"></div>
+        <span class="adim-text">Küp şekli ekrana <strong>20 cm</strong> uzakta tut, el fenerini yak. Gölgenin şeklini deftere çiz.</span>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <span class="adim-no">3</span>
+        <div class="adim-check"></div>
+        <span class="adim-text">Küpü ışık kaynağına <strong>yaklaştır</strong>. Gölgenin nasıl değiştiğini gözlemle ve kaydet.</span>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <span class="adim-no">4</span>
+        <div class="adim-check"></div>
+        <span class="adim-text">Küreyi ve üçgeni dene. Her şeklin gölgesi aynı şekli mi veriyor? Farkları incele.</span>
+      </li>
+      <li class="adim-item" onclick="adimToggle(this)">
+        <span class="adim-no">5</span>
+        <div class="adim-check"></div>
+        <span class="adim-text">İki farklı mesafedeki gölge boyutlarını cetvelle ölç ve aşağıdaki tabloya kaydet.</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- MALZEMELER -->
+  <section>
+    <div class="section-title">🧰 Malzemeler</div>
+    <div class="malzeme-grid">
+      <div class="malzeme-item">El feneri veya telefon lambası</div>
+      <div class="malzeme-item">Strafor küp (5×5×5 cm)</div>
+      <div class="malzeme-item">Strafor küre (çap 5 cm)</div>
+      <div class="malzeme-item">Strafor üçgen prizma</div>
+      <div class="malzeme-item">Beyaz mukavva (ekran)</div>
+      <div class="malzeme-item">Cetvel (30 cm)</div>
+      <div class="malzeme-item">Kalem ve defter</div>
+      <div class="malzeme-item">Karanlık ortam</div>
+    </div>
+  </section>
+
+  <!-- GÖZLEM DEFTERİ -->
+  <section>
+    <div class="section-title">📝 Gözlem Defteri</div>
+    <div class="card">
+      <div class="tablo-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cisim Şekli</th>
+              <th>Cisim-Ekran (cm)</th>
+              <th>Gölge Boyu (cm)</th>
+              <th>Gölge Eni (cm)</th>
+              <th>Gözlem</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Küp</td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="text" placeholder="Notlar..."></td>
+            </tr>
+            <tr>
+              <td>Küp (yakın)</td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="text" placeholder="Notlar..."></td>
+            </tr>
+            <tr>
+              <td>Küre</td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="text" placeholder="Notlar..."></td>
+            </tr>
+            <tr>
+              <td>Prizma</td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="number" placeholder="0"></td>
+              <td><input type="text" placeholder="Notlar..."></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Genel Gözlemlerim</label>
+        <textarea placeholder="Deneyde neler fark ettin? Gölge boyutu ile mesafe arasındaki ilişkiyi kendi cümlelerinle açıkla..."></textarea>
+      </div>
+
+      <div class="note-box yesil" style="margin-top:14px;">
+        <strong>Beklenen Sonuçlar</strong>
+        Cisim ışığa yaklaştıkça veya ekrandan uzaklaştıkça gölge büyür. Kürenin gölgesi daima oval/daire şeklindedir. Prizmanın gölgesi, konumuna bağlı olarak dikdörtgen veya üçgen çıkabilir.
+      </div>
+
+      <button class="kaydet-btn" onclick="kaydet()">💾 Gözlem Raporunu Kaydet</button>
+    </div>
+  </section>
+
+  <!-- QR KOD -->
+  <section>
+    <div class="section-title">📱 QR Kodu</div>
+    <div class="card">
+      <div class="qr-section">
+        <div id="qrcode"></div>
+        <div class="qr-info">
+          <h3>Bu deneyi paylaş</h3>
+          <p>QR kodu tarayarak bu deney sayfasına doğrudan erişebilirsin. Arkadaşlarınla veya öğretmeninle paylaş.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="../assets/dogrulab.js"></script>
+<script>
+// ── Simülasyon Değişkenleri ──
+var sekil = 'kup';
+var animasyonAktif = false;
+var animId = null;
+var animFaz = 0;
+var canvas, ctx, W, H;
+
+window.addEventListener('load', function () {
+  canvas = document.getElementById('golgeCanvas');
+  ctx = canvas.getContext('2d');
+  boyutlandir();
+  simGuncelle();
+  window.addEventListener('resize', function () { boyutlandir(); simGuncelle(); });
+});
+
+function boyutlandir() {
+  W = canvas.offsetWidth;
+  H = 260;
+  canvas.width = W;
+  canvas.height = H;
+}
+
+function simGuncelle() {
+  var ic = parseInt(document.getElementById('sliderIsikCisim').value);
+  var ce = parseInt(document.getElementById('sliderCisimEkran').value);
+  document.getElementById('lblIsikCisim').textContent = ic + ' cm';
+  document.getElementById('lblCisimEkran').textContent = ce + ' cm';
+
+  // Gölge boyutu hesabı (oransal model)
+  var cisimBoy = 40; // piksel referans boyutu
+  var golgeOran = (ic + ce) / ic;
+  var golgeBoy = (cisimBoy * golgeOran).toFixed(1);
+  document.getElementById('infoGolgeBoy').textContent = golgeBoy + ' cm';
+  document.getElementById('infoGolgeTur').textContent = ic > 30 ? 'Yarı Gölge' : 'Tam Gölge';
+
+  var isimler = { kup: 'Küp', kure: 'Küre', prizma: 'Prizma' };
+  document.getElementById('infoCisim').textContent = isimler[sekil];
+
+  ciz(ic, ce, golgeOran, 0);
+}
+
+function ciz(ic, ce, golgeOran, puls) {
+  ctx.clearRect(0, 0, W, H);
+
+  // Arka plan
+  ctx.fillStyle = '#070b16';
+  ctx.fillRect(0, 0, W, H);
+
+  var toplam = ic + ce;
+  var isikX = 40 + (ic / toplam) * 0;
+  var ekranX = W - 36;
+  var cismX = Math.round(W * (ic / (ic + ce)));
+  var cx = cismX;
+  var cy = H / 2;
+  var cisimR = 22;
+
+  // Işık kaynağı konumu (sol taraf sabit)
+  isikX = 44;
+
+  // Gölge boyutu (yükseklik)
+  var golgeH = cisimR * 2 * golgeOran;
+  if (golgeH > H * 0.88) golgeH = H * 0.88;
+
+  // Gölge şekli ekranda
+  var golgeY1 = cy - golgeH / 2;
+  var golgeY2 = cy + golgeH / 2;
+
+  // Gölge ışın çizgileri (açık gri)
+  ctx.strokeStyle = 'rgba(93,173,226,0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(isikX, cy - 8 + puls);
+  ctx.lineTo(ekranX, golgeY1);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(isikX, cy + 8 - puls);
+  ctx.lineTo(ekranX, golgeY2);
+  ctx.stroke();
+
+  // Ekran (gri dikey duvar)
+  ctx.fillStyle = '#1a2a3a';
+  ctx.fillRect(ekranX, 8, 18, H - 16);
+  ctx.strokeStyle = '#2a3a4a';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(ekranX, 8, 18, H - 16);
+
+  // Gölge ekranda
+  var golgeDerin = sekil === 'kure' ? golgeH * 0.78 : golgeH;
+  var golgeRenk = ic <= 10 ? 'rgba(5,8,18,0.98)' : 'rgba(5,8,18,0.88)';
+  ctx.fillStyle = golgeRenk;
+  if (sekil === 'kure') {
+    ctx.beginPath();
+    ctx.ellipse(ekranX + 9, cy, 9, golgeDerin / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (sekil === 'prizma') {
+    ctx.fillRect(ekranX, cy - golgeDerin / 2, 18, golgeDerin);
+    // Üçgen efekti (koyu köşeler)
+    ctx.fillStyle = 'rgba(5,8,18,0.5)';
+    ctx.beginPath();
+    ctx.moveTo(ekranX, cy - golgeDerin / 2);
+    ctx.lineTo(ekranX + 18, cy - golgeDerin / 3);
+    ctx.lineTo(ekranX, cy + golgeDerin / 2);
+    ctx.fill();
+  } else {
+    ctx.fillRect(ekranX, cy - golgeDerin / 2, 18, golgeDerin);
+  }
+
+  // Işık kaynağı (parlayan daire)
+  var parlaklik = 0.85 + puls * 0.15;
+  var gradIsik = ctx.createRadialGradient(isikX, cy, 2, isikX, cy, 28 + puls * 4);
+  gradIsik.addColorStop(0, 'rgba(255,250,200,' + parlaklik + ')');
+  gradIsik.addColorStop(0.4, 'rgba(255,220,80,0.6)');
+  gradIsik.addColorStop(1, 'rgba(255,180,0,0)');
+  ctx.fillStyle = gradIsik;
+  ctx.beginPath();
+  ctx.arc(isikX, cy, 28 + puls * 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Işık kaynağı merkezi
+  ctx.fillStyle = '#fffde7';
+  ctx.beginPath();
+  ctx.arc(isikX, cy, 7, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Işık yayları (dekoratif)
+  ctx.strokeStyle = 'rgba(255,220,80,0.18)';
+  ctx.lineWidth = 1.5;
+  for (var i = 0; i < 6; i++) {
+    var a = (i / 6) * Math.PI * 2 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(isikX + Math.cos(a) * 10, cy + Math.sin(a) * 10);
+    ctx.lineTo(isikX + Math.cos(a) * 22, cy + Math.sin(a) * 22);
+    ctx.stroke();
+  }
+
+  // Işık etiketi
+  ctx.fillStyle = 'rgba(255,220,80,0.7)';
+  ctx.font = '500 10px Poppins, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Işık Kaynağı', isikX, cy + 36);
+
+  // Cisim çiz
+  ctx.save();
+  ctx.translate(cx, cy);
+  if (sekil === 'kup') {
+    var g = ctx.createLinearGradient(-cisimR, -cisimR, cisimR, cisimR);
+    g.addColorStop(0, '#4a90d9');
+    g.addColorStop(1, '#2a5a99');
+    ctx.fillStyle = g;
+    ctx.strokeStyle = '#6aaff0';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(-cisimR, -cisimR, cisimR * 2, cisimR * 2);
+    ctx.strokeRect(-cisimR, -cisimR, cisimR * 2, cisimR * 2);
+    // 3D kenar efekti
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(-cisimR, -cisimR, cisimR * 2, 6);
+    ctx.fillRect(-cisimR, -cisimR, 6, cisimR * 2);
+  } else if (sekil === 'kure') {
+    var gr = ctx.createRadialGradient(-6, -6, 2, 0, 0, cisimR);
+    gr.addColorStop(0, '#7ec8e3');
+    gr.addColorStop(1, '#1a5a80');
+    ctx.fillStyle = gr;
+    ctx.strokeStyle = '#5dade2';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, cisimR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  } else {
+    // Prizma (üçgen)
+    var g2 = ctx.createLinearGradient(-cisimR, cisimR, cisimR, -cisimR);
+    g2.addColorStop(0, '#6a4cbf');
+    g2.addColorStop(1, '#a57ef0');
+    ctx.fillStyle = g2;
+    ctx.strokeStyle = '#c4a4ff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -cisimR);
+    ctx.lineTo(cisimR, cisimR);
+    ctx.lineTo(-cisimR, cisimR);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Cisim etiketi
+  ctx.fillStyle = 'rgba(93,173,226,0.8)';
+  ctx.font = '500 10px Poppins, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(sekil === 'kup' ? 'Küp' : sekil === 'kure' ? 'Küre' : 'Prizma', cx, cy + cisimR + 18);
+
+  // Mesafe ölçü çizgileri
+  ctx.strokeStyle = 'rgba(93,173,226,0.3)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  // Işık-Cisim
+  ctx.beginPath(); ctx.moveTo(isikX, H - 18); ctx.lineTo(cx, H - 18); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(93,173,226,0.6)';
+  ctx.font = '9px Poppins, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Işık-Cisim: ' + ic + ' cm', (isikX + cx) / 2, H - 6);
+
+  ctx.strokeStyle = 'rgba(72,201,176,0.3)';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(cx, H - 18); ctx.lineTo(ekranX, H - 18); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(72,201,176,0.6)';
+  ctx.textAlign = 'center';
+  ctx.fillText('Cisim-Ekran: ' + ce + ' cm', (cx + ekranX) / 2, H - 6);
+}
+
+function animasyonToggle() {
+  animasyonAktif = !animasyonAktif;
+  var btn = document.getElementById('btnAnimasyon');
+  if (animasyonAktif) {
+    btn.textContent = '⏸ Durdur';
+    btn.className = 'btn btn-danger';
+    animasyonDongu();
+  } else {
+    btn.textContent = '▶ Animasyon';
+    btn.className = 'btn btn-secondary';
+    if (animId) cancelAnimationFrame(animId);
+    simGuncelle();
+  }
+}
+
+function animasyonDongu() {
+  if (!animasyonAktif) return;
+  animFaz += 0.04;
+  var puls = Math.sin(animFaz) * 0.5 + 0.5;
+  var ic = parseInt(document.getElementById('sliderIsikCisim').value);
+  var ce = parseInt(document.getElementById('sliderCisimEkran').value);
+  var golgeOran = (ic + ce) / ic;
+  ciz(ic, ce, golgeOran, puls);
+  animId = requestAnimationFrame(animasyonDongu);
+}
+
+function simSifirla() {
+  animasyonAktif = false;
+  if (animId) cancelAnimationFrame(animId);
+  document.getElementById('btnAnimasyon').textContent = '▶ Animasyon';
+  document.getElementById('btnAnimasyon').className = 'btn btn-secondary';
+  document.getElementById('sliderIsikCisim').value = 20;
+  document.getElementById('sliderCisimEkran').value = 25;
+  sekil = 'kup';
+  sekilVurgula();
+  simGuncelle();
+}
+
+function sekilVurgula() {
+  ['btnKup','btnKure','btnPrizma'].forEach(function(id) {
+    document.getElementById(id).className = 'btn btn-secondary';
+  });
+  var map = { kup:'btnKup', kure:'btnKure', prizma:'btnPrizma' };
+  document.getElementById(map[sekil]).className = 'btn btn-primary';
+}
+</script>
+
+</body>
+</html>

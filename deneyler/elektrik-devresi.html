@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elektrik Devresi Kuruyorum | DoğruLab</title>
+  <link rel="stylesheet" href="../assets/dogrulab.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    /* ── Keşfet (Expandable) ── */
+    .kesfet { background:var(--bg3); border:1px solid var(--border2); border-radius:10px; margin-bottom:8px; cursor:pointer; overflow:hidden; transition:border-color 0.3s; }
+    .kesfet:hover { border-color:var(--border); }
+    .kesfet-baslik { padding:12px 16px; display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; font-weight:600; color:var(--h2); }
+    .kesfet-ok { transition:transform 0.3s; color:var(--text2); font-size:0.75rem; flex-shrink:0; }
+    .kesfet.acik .kesfet-ok { transform:rotate(180deg); }
+    .kesfet-icerik { max-height:0; overflow:hidden; transition:max-height 0.4s ease; padding:0 16px; font-size:0.82rem; color:var(--text2); line-height:1.8; }
+    .kesfet.acik .kesfet-icerik { max-height:500px; padding:0 16px 14px; }
+    .kesfet-icerik strong { color:var(--teal); }
+
+    /* ── Ohm Kavram Kartları ── */
+    .ohm-cards { display:flex; gap:14px; flex-wrap:wrap; margin:20px 0; }
+    .ohm-card { flex:1 1 180px; background:var(--bg3); border:1px solid var(--border2); border-radius:14px; padding:18px 14px 14px; display:flex; flex-direction:column; align-items:center; gap:8px; transition:transform 0.2s, box-shadow 0.2s; }
+    .ohm-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.3); }
+    .ohm-card.cyan { border-color:rgba(93,173,226,0.35); }
+    .ohm-card.teal { border-color:rgba(72,201,176,0.35); }
+    .ohm-card.orange { border-color:rgba(255,166,87,0.35); }
+    .ohm-icon { font-size:2rem; margin-bottom:2px; }
+    .ohm-baslik { font-size:0.9rem; font-weight:700; }
+    .ohm-baslik.cyan { color:var(--cyan); }
+    .ohm-baslik.teal { color:var(--teal); }
+    .ohm-baslik.orange { color:var(--orange); }
+    .ohm-aciklama { font-size:0.78rem; color:var(--text2); text-align:center; line-height:1.5; }
+    .ohm-birim { font-size:0.7rem; font-weight:700; padding:3px 10px; border-radius:999px; letter-spacing:0.5px; }
+    .ohm-birim.cyan { background:rgba(93,173,226,0.12); color:#5dade2; border:1px solid rgba(93,173,226,0.3); }
+    .ohm-birim.teal { background:rgba(72,201,176,0.12); color:#48c9b0; border:1px solid rgba(72,201,176,0.3); }
+    .ohm-birim.orange { background:rgba(255,166,87,0.12); color:#ffa657; border:1px solid rgba(255,166,87,0.3); }
+
+    /* ── Su Analojisi Canvas ── */
+    .su-canvas-wrap { margin:0 auto 16px; }
+    #suCanvas { border-radius:10px; background:#0a1020; display:block; width:100%; }
+
+    /* ── Formül Alanı ── */
+    .formul-interaktif { background:rgba(93,173,226,0.04); border:1px solid rgba(93,173,226,0.2); border-radius:14px; padding:24px 20px 20px; text-align:center; margin-top:20px; }
+    .formul-buyuk { font-size:2.2rem; font-weight:800; letter-spacing:4px; margin-bottom:20px; }
+    .formul-v { color:#5dade2; } .formul-eq { color:var(--text2); margin:0 8px; }
+    .formul-i { color:#48c9b0; } .formul-x { color:var(--text2); margin:0 4px; }
+    .formul-r { color:#ffa657; }
+    .slider-grup { display:flex; flex-direction:column; gap:14px; margin-bottom:20px; max-width:480px; margin-left:auto; margin-right:auto; }
+    .slider-satir { display:flex; align-items:center; gap:12px; }
+    .slider-etiket { font-size:0.82rem; color:var(--text2); min-width:110px; text-align:left; }
+    .slider-etiket strong { display:block; font-size:0.9rem; color:var(--text); }
+    .slider-deger { font-size:0.9rem; font-weight:700; min-width:54px; text-align:right; }
+    .slider-deger.cyan { color:#5dade2; }
+    .slider-deger.orange { color:#ffa657; }
+    .akimsonuc { font-size:1.1rem; font-weight:700; color:#48c9b0; margin-top:8px; }
+    .akimsonuc span { font-size:0.8rem; font-weight:400; color:var(--text2); margin-left:4px; }
+
+    /* ── Devre Simülatörü ── */
+    .devre-tabs { display:flex; gap:8px; margin-bottom:12px; }
+    .devre-tab { flex:1; padding:10px; border-radius:10px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); font-family:inherit; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.2s; text-align:center; }
+    .devre-tab.aktif-seri { border-color:var(--cyan); color:var(--cyan); background:rgba(93,173,226,0.1); }
+    .devre-tab.aktif-paralel { border-color:var(--purple); color:var(--purple); background:rgba(137,87,229,0.1); }
+    .devre-kontrol { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .kontrol-grup { display:flex; align-items:center; gap:6px; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:8px 12px; }
+    .kontrol-label { font-size:0.75rem; color:var(--text2); font-weight:600; margin-right:4px; }
+    .kontrol-deger { font-size:0.9rem; font-weight:700; color:var(--text); min-width:20px; text-align:center; }
+    .kontrol-btn { width:28px; height:28px; border-radius:50%; border:1px solid var(--border2); background:var(--bg3); color:var(--text); font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; font-family:inherit; }
+    .kontrol-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+    .anahtar-btn { padding:8px 16px; border-radius:10px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); font-family:inherit; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.15s; }
+    .anahtar-btn.kapali { border-color:rgba(86,211,100,0.4); color:var(--green); background:rgba(86,211,100,0.08); }
+    .anahtar-btn.acik { border-color:rgba(248,81,73,0.3); color:var(--red); background:rgba(248,81,73,0.06); }
+    #devreCanvas { width:100%; display:block; border-radius:8px; }
+    .devre-durum { margin-top:12px; }
+    .durum-badge { display:inline-block; font-size:0.75rem; font-weight:700; padding:3px 12px; border-radius:999px; margin-bottom:10px; letter-spacing:0.5px; }
+    .durum-badge.seri { background:rgba(93,173,226,0.15); color:#5dade2; border:1px solid rgba(93,173,226,0.3); }
+    .durum-badge.paralel { background:rgba(137,87,229,0.15); color:#8957e5; border:1px solid rgba(137,87,229,0.3); }
+
+    /* ── Deney Adımları ── */
+    .adim-liste { list-style:none; display:flex; flex-direction:column; gap:10px; padding:0; }
+    .adim-satir { display:flex; align-items:flex-start; gap:14px; background:var(--bg3); border:1px solid var(--border2); border-radius:10px; padding:14px 16px; }
+    .adim-numara { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:rgba(93,173,226,0.12); border:1px solid rgba(93,173,226,0.3); color:#5dade2; font-size:0.78rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+    .adim-metin { font-size:0.875rem; line-height:1.6; color:var(--text); }
+    .adim-metin strong { color:var(--teal); }
+
+    /* ── Gözlem Defteri ── */
+    .gozlem-form { display:flex; flex-direction:column; gap:14px; }
+    .gozlem-grup { display:flex; flex-direction:column; gap:6px; }
+    .gozlem-label { font-size:0.8rem; color:var(--text2); font-weight:600; }
+
+    @media (max-width:600px) {
+      .ohm-cards { flex-direction:column; }
+      .devre-kontrol { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="../index.html">⚗️ DoğruLab</a>
+  <div class="deney-badge">Fizik · 7. Sınıf</div>
+</header>
+
+<main>
+
+  <!-- ═══ SECTION 1: HERO ═══ -->
+  <div class="hero">
+    <span class="hero-emoji">⚡</span>
+    <h1>Elektrik Devresi Kuruyorum</h1>
+    <p>Seri ve paralel devreleri keşfet, Ohm Yasası'nı öğren, kendi devreni kur!</p>
+    <div class="meta-row">
+      <span class="meta-chip sinif">7. Sınıf</span>
+      <span class="meta-chip zorluk">Kolay</span>
+      <span class="meta-chip sure">~30 dk</span>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 2: OHM YASASI — SU ANALOJİSİ ═══ -->
+  <section>
+    <div class="section-title"><span>💧</span> Ohm Yasası — Su Analojisi ile Anlayalım</div>
+
+    <div class="note-box">
+      💧 <strong>Düşün:</strong> Evinizdeki musluk. Su deposu ne kadar yüksekse (gerilim), musluktan o kadar güçlü su akar (akım). Ama boruyu daraltırsan (direnç), su akışı yavaşlar. İşte Ohm Yasası tam olarak bunu söylüyor: <strong>V = I × R</strong>
+    </div>
+
+    <!-- Su Analojisi Canvas -->
+    <div class="su-canvas-wrap">
+      <canvas id="suCanvas" height="200"></canvas>
+    </div>
+
+    <!-- Kavram Kartları -->
+    <div class="ohm-cards">
+      <div class="ohm-card cyan">
+        <div class="ohm-icon">🏔️</div>
+        <div class="ohm-baslik cyan">Gerilim (V)</div>
+        <div class="ohm-aciklama">Su deposunun yüksekliği<br>Ne kadar yüksekse, su o kadar güçlü akar</div>
+        <span class="ohm-birim cyan">Volt (V)</span>
+      </div>
+      <div class="ohm-card teal">
+        <div class="ohm-icon">💧💧💧</div>
+        <div class="ohm-baslik teal">Akım (I)</div>
+        <div class="ohm-aciklama">Boruda akan su miktarı<br>Geniş boru = çok su; dar boru = az su</div>
+        <span class="ohm-birim teal">Amper (A)</span>
+      </div>
+      <div class="ohm-card orange">
+        <div class="ohm-icon">⊘</div>
+        <div class="ohm-baslik orange">Direnç (R)</div>
+        <div class="ohm-aciklama">Borudaki daralma<br>Dar boru suyun akışını zorlaştırır</div>
+        <span class="ohm-birim orange">Ohm (Ω)</span>
+      </div>
+    </div>
+
+    <!-- İnteraktif Formül Alanı -->
+    <div class="formul-interaktif">
+      <div class="formul-buyuk">
+        <span class="formul-v">V</span><span class="formul-eq">=</span><span class="formul-i">I</span><span class="formul-x">×</span><span class="formul-r">R</span>
+      </div>
+
+      <div class="slider-grup">
+        <div class="slider-satir">
+          <div class="slider-etiket"><strong>🏔️ Gerilim</strong>Su deposu yüksekliği</div>
+          <input type="range" id="ohmV" min="1" max="12" value="6" oninput="ohmGuncelle()">
+          <div class="slider-deger cyan" id="ohmVDeg">6 V</div>
+        </div>
+        <div class="slider-satir">
+          <div class="slider-etiket"><strong>⊘ Direnç</strong>Boru genişliği</div>
+          <input type="range" id="ohmR" min="1" max="100" value="10" oninput="ohmGuncelle()">
+          <div class="slider-deger orange" id="ohmRDeg">10 Ω</div>
+        </div>
+      </div>
+
+      <div class="akimsonuc">
+        💧 Akım: <span id="ohmIDeg">0.60 A</span>
+      </div>
+
+      <div class="formul-aciklama" style="margin-top:12px;">
+        <span><strong>V</strong> = Gerilim (Volt)</span>
+        <span><strong>I</strong> = Akım (Amper)</span>
+        <span><strong>R</strong> = Direnç (Ohm)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3: İNTERAKTİF DEVRE SİMÜLATÖRÜ ═══ -->
+  <section>
+    <div class="section-title"><span>🔌</span> İnteraktif Devre Simülatörü</div>
+
+    <div class="sim-container">
+      <div class="sim-controls" style="border-top:none; border-bottom:1px solid var(--border);">
+        <!-- Devre Türü Seçimi -->
+        <div class="devre-tabs">
+          <button class="devre-tab aktif-seri" id="tabSeri" onclick="devreTuru('seri')">⚡ Seri Devre</button>
+          <button class="devre-tab" id="tabParalel" onclick="devreTuru('paralel')">🔀 Paralel Devre</button>
+        </div>
+
+        <!-- Kontroller -->
+        <div class="devre-kontrol">
+          <div class="kontrol-grup">
+            <span class="kontrol-label">Ampul:</span>
+            <button class="kontrol-btn" onclick="ampulDegistir(-1)">−</button>
+            <span class="kontrol-deger" id="ampulSayi">2</span>
+            <button class="kontrol-btn" onclick="ampulDegistir(1)">+</button>
+          </div>
+          <button class="anahtar-btn acik" id="anahtarBtn" onclick="anahtarToggle()">🔓 Anahtar: Açık</button>
+          <div class="kontrol-grup" style="flex:1; min-width:180px;">
+            <span class="kontrol-label">Pil:</span>
+            <input type="range" id="pilV" min="1.5" max="12" step="1.5" value="6" oninput="pilGuncelle()" style="flex:1;">
+            <span class="kontrol-deger" id="pilVDeg" style="color:var(--cyan);">6V</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="sim-canvas-wrap">
+        <canvas id="devreCanvas" height="280"></canvas>
+      </div>
+
+      <!-- Durum Paneli -->
+      <div class="sim-controls">
+        <div class="devre-durum">
+          <span class="durum-badge seri" id="durumBadge">Seri Devre</span>
+          <span id="durumMesaj" style="font-size:0.8rem; color:var(--red); margin-left:8px;"></span>
+        </div>
+        <div class="sim-info-row">
+          <div class="info-card"><div class="label">Pil Gerilimi</div><div class="value" id="infoPilV">6 V</div></div>
+          <div class="info-card"><div class="label">Toplam Direnç</div><div class="value" id="infoRTop">20 Ω</div></div>
+          <div class="info-card"><div class="label">Akım</div><div class="value" id="infoAkim">0.30 A</div></div>
+          <div class="info-card"><div class="label">Ampul Başına Gerilim</div><div class="value" id="infoVAmpul">3.0 V</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 4: DENEY MALZEMELERİ ═══ -->
+  <section>
+    <div class="section-title"><span>🧪</span> Deney Malzemeleri</div>
+
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>🔋 Pil</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">Devrenin güç kaynağı. Kimyasal enerjiyi elektrik enerjisine çevirir. <strong>Artı (+)</strong> kutuptan akım çıkar, <strong>eksi (−)</strong> kutba döner. Piller genelde 1,5V üretir — 4 pil seri bağlanırsa 6V olur.</div>
+    </div>
+
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>🔴 Kırmızı Kablo</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik"><strong>Artı (+)</strong> terminale bağlanan kablo. Uluslararası renk kodlaması: kırmızı = pozitif. Akımın çıkış yönünü gösterir. Her yerde aynı standart.</div>
+    </div>
+
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>⚫ Siyah Kablo</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik"><strong>Eksi (−)</strong> terminale bağlanan kablo. Uluslararası renk kodlaması: siyah = negatif. Toprak hattı olarak da bilinir.</div>
+    </div>
+
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>💡 Ampul + Duy</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">Elektrik enerjisini ışık ve ısı enerjisine çevirir. Telin içinden akım geçer, tel ısınır ve ışık verir. Direnci genelde <strong>10-20 Ohm</strong> civarındadır.</div>
+    </div>
+
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>🔲 Anahtar</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">Devreyi açıp kapatır. <strong>Açıkken</strong> devre kesilir, akım akmaz. <strong>Kapalıyken</strong> devre tamamlanır, akım akar.</div>
+    </div>
+
+    <div class="kesfet" onclick="this.classList.toggle('acik')" style="margin-top:12px;">
+      <div class="kesfet-baslik"><span>⚡ Kablolar neden kırmızı ve siyah?</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">Uluslararası güvenlik standardı. Elektrikçiler, teknisyenler ve mühendisler dünya genelinde aynı renk kodunu kullanır: <strong>Kırmızı = pozitif (+)</strong>, <strong>Siyah = negatif (−)</strong>. Bu sayede yanlış bağlantı riski azalır.</div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 5: DENEY ADIMLARI ═══ -->
+  <section>
+    <div class="section-title"><span>📋</span> Deney Adımları</div>
+    <div class="card">
+      <ol class="adim-liste">
+        <li class="adim-satir"><span class="adim-numara">1</span><span class="adim-metin">Pil yuvalarına pilleri yerleştir (<strong>kırmızı kablo + kutba</strong>, <strong>siyah kablo − kutba</strong>).</span></li>
+        <li class="adim-satir"><span class="adim-numara">2</span><span class="adim-metin">İki ampulü <strong>seri bağla</strong>: Pil (+) → Kablo → Ampul 1 → Kablo → Ampul 2 → Kablo → Pil (−).</span></li>
+        <li class="adim-satir"><span class="adim-numara">3</span><span class="adim-metin">Anahtarı kapat. Ampullerin <strong>parlaklığını</strong> gözlemle. Bir ampulü söküp ne olduğunu izle.</span></li>
+        <li class="adim-satir"><span class="adim-numara">4</span><span class="adim-metin">Devreyi sök. Şimdi aynı iki ampulü <strong>paralel bağla</strong>: her ampulün iki ucu doğrudan pile bağlı.</span></li>
+        <li class="adim-satir"><span class="adim-numara">5</span><span class="adim-metin">Anahtarı kapat. Parlaklığı karşılaştır. Bir ampulü söktüğünde diğeri yanıyor mu?</span></li>
+        <li class="adim-satir"><span class="adim-numara">6</span><span class="adim-metin">Seri ve paralel devrelerdeki <strong>parlaklık farkını</strong> not et.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 6: BEKLENTİ (GİZLİ) ═══ -->
+  <section>
+    <div class="kesfet" onclick="this.classList.toggle('acik')">
+      <div class="kesfet-baslik"><span>🔎 Beklenen Sonuç (Tıkla)</span><span class="kesfet-ok">▾</span></div>
+      <div class="kesfet-icerik">
+        <p style="margin-bottom:10px;">Paralel devrede ampuller seri devreye göre <strong>daha parlak</strong> yanar. Çünkü paralel bağlantıda her ampul pilin tam gerilimini alır. Seri devrede ise gerilim ampuller arasında paylaşılır — her ampul daha az gerilim alır, daha az parlar.</p>
+        <p>Seri devrede bir ampulü sökersen devre açılır, <strong>tüm ampuller söner</strong>. Paralel devrede bir ampulü sökersen diğerleri yanmaya devam eder — çünkü her ampul bağımsız bir devre oluşturur.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 7: GÖZLEM DEFTERİ ═══ -->
+  <section>
+    <div class="section-title"><span>📝</span> Gözlem Defteri</div>
+    <div class="card">
+      <div class="gozlem-form">
+        <div class="gozlem-grup">
+          <label class="gozlem-label">Seri Devre Gözlemleri</label>
+          <textarea placeholder="Seri devrede ampullerin parlaklığı nasıldı?"></textarea>
+        </div>
+        <div class="gozlem-grup">
+          <label class="gozlem-label">Paralel Devre Gözlemleri</label>
+          <textarea placeholder="Paralel devrede ampullerin parlaklığı nasıldı?"></textarea>
+        </div>
+        <div class="gozlem-grup">
+          <label class="gozlem-label">Seri ve Paralel Farkları</label>
+          <textarea placeholder="İki devre arasında ne fark gördün?"></textarea>
+        </div>
+        <div class="gozlem-grup">
+          <label class="gozlem-label">Günlük Hayattan Örnek</label>
+          <textarea placeholder="Evinizdeki ampuller hangi bağlantı türünde?"></textarea>
+        </div>
+        <button class="kaydet-btn" onclick="kaydet()">💾 Gözlemlerimi Kaydet</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 8: QR KOD ═══ -->
+  <section>
+    <div class="section-title"><span>📱</span> QR Kodu</div>
+    <div class="card">
+      <div class="qr-section">
+        <div id="qrcode"></div>
+        <div class="qr-info">
+          <h3>Bu deneyi paylaş</h3>
+          <p>QR kodu tarayarak bu sayfaya doğrudan erişilebilir. Öğretmenin tahtaya yansıtabilir.</p>
+          <p style="margin-top:8px;color:var(--cyan);font-size:0.75rem;">⚡ Çevrimdışı çalışır · Uygulama gerekmez</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="../assets/dogrulab.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   SECTION 2: SU ANALOJİSİ + OHM YASASI
+   ═══════════════════════════════════════════════════ */
+
+var suCanvas = document.getElementById('suCanvas');
+var suCtx = suCanvas.getContext('2d');
+var suDots = [];
+var suAnimId = null;
+
+function suBoyutla() {
+  var w = suCanvas.parentElement.clientWidth;
+  suCanvas.width = w;
+  suCanvas.height = 200;
+}
+suBoyutla();
+window.addEventListener('resize', suBoyutla);
+
+// Su damlacıkları
+for (var i = 0; i < 20; i++) {
+  suDots.push({ pos: Math.random(), y: 0 });
+}
+
+function ohmGuncelle() {
+  var V = parseFloat(document.getElementById('ohmV').value);
+  var R = parseFloat(document.getElementById('ohmR').value);
+  var I = V / R;
+  document.getElementById('ohmVDeg').textContent = V + ' V';
+  document.getElementById('ohmRDeg').textContent = R + ' Ω';
+  document.getElementById('ohmIDeg').textContent = I.toFixed(2) + ' A';
+}
+
+function suCiz() {
+  var V = parseFloat(document.getElementById('ohmV').value);
+  var R = parseFloat(document.getElementById('ohmR').value);
+  var I = V / R;
+
+  var w = suCanvas.width;
+  var h = suCanvas.height;
+  suCtx.clearRect(0, 0, w, h);
+
+  // Arka plan
+  suCtx.fillStyle = '#0a1020';
+  suCtx.fillRect(0, 0, w, h);
+
+  // Depo boyutları — V'ye bağlı
+  var depoX = 40;
+  var depoW = 70;
+  var maxDepoH = 130;
+  var depoH = 30 + (V / 12) * (maxDepoH - 30);
+  var depoY = h - 30 - depoH;
+
+  // Boru parametreleri — R'ye ters orantılı
+  var maxBoruH = 50;
+  var minBoruH = 8;
+  var boruH = maxBoruH - (R / 100) * (maxBoruH - minBoruH);
+
+  var boruBasX = depoX + depoW;
+  var boruBitX = w - 80;
+  var boruY = h - 30 - boruH / 2 - 10;
+
+  // Su deposu çiz
+  suCtx.fillStyle = 'rgba(93,173,226,0.15)';
+  suCtx.strokeStyle = '#5dade2';
+  suCtx.lineWidth = 2;
+  suCtx.beginPath();
+  suCtx.rect(depoX, depoY, depoW, depoH);
+  suCtx.fill();
+  suCtx.stroke();
+
+  // Depo içindeki su
+  var suSeviye = depoH * 0.8;
+  var suY = depoY + depoH - suSeviye;
+  suCtx.fillStyle = 'rgba(93,173,226,0.35)';
+  suCtx.fillRect(depoX + 2, suY, depoW - 4, suSeviye - 2);
+
+  // Depo etiketi
+  suCtx.fillStyle = '#5dade2';
+  suCtx.font = 'bold 11px Poppins, sans-serif';
+  suCtx.textAlign = 'center';
+  suCtx.fillText(V + 'V', depoX + depoW / 2, depoY - 8);
+  suCtx.fillStyle = '#8b949e';
+  suCtx.font = '10px Poppins, sans-serif';
+  suCtx.fillText('Gerilim', depoX + depoW / 2, depoY - 22);
+
+  // Boru çiz
+  suCtx.fillStyle = 'rgba(30,50,80,0.6)';
+  suCtx.strokeStyle = '#30363d';
+  suCtx.lineWidth = 1.5;
+  suCtx.beginPath();
+  suCtx.rect(boruBasX, boruY - boruH / 2, boruBitX - boruBasX, boruH);
+  suCtx.fill();
+  suCtx.stroke();
+
+  // Boru direnç etiketi
+  suCtx.fillStyle = '#ffa657';
+  suCtx.font = 'bold 11px Poppins, sans-serif';
+  suCtx.textAlign = 'center';
+  var boruOrtaX = (boruBasX + boruBitX) / 2;
+  suCtx.fillText(R + 'Ω', boruOrtaX, boruY - boruH / 2 - 10);
+  suCtx.fillStyle = '#8b949e';
+  suCtx.font = '10px Poppins, sans-serif';
+  suCtx.fillText('Direnç', boruOrtaX, boruY - boruH / 2 - 24);
+
+  // Çıkış bölgesi
+  var cikisX = boruBitX;
+  var cikisW = 50;
+  suCtx.fillStyle = 'rgba(72,201,176,0.12)';
+  suCtx.strokeStyle = '#48c9b0';
+  suCtx.lineWidth = 1.5;
+  suCtx.beginPath();
+  suCtx.rect(cikisX, boruY - 20, cikisW, 40);
+  suCtx.fill();
+  suCtx.stroke();
+
+  // Çıkış etiketi
+  suCtx.fillStyle = '#48c9b0';
+  suCtx.font = 'bold 11px Poppins, sans-serif';
+  suCtx.textAlign = 'center';
+  suCtx.fillText(I.toFixed(2) + 'A', cikisX + cikisW / 2, boruY - 26);
+  suCtx.fillStyle = '#8b949e';
+  suCtx.font = '10px Poppins, sans-serif';
+  suCtx.fillText('Akım', cikisX + cikisW / 2, boruY - 40);
+
+  // Akan su damlaları
+  var hiz = I * 0.012;
+  for (var i = 0; i < suDots.length; i++) {
+    var d = suDots[i];
+    d.pos += hiz;
+    if (d.pos > 1) d.pos -= 1;
+
+    var dx = boruBasX + d.pos * (boruBitX - boruBasX);
+    var boruIciY = boruY + (Math.sin(d.pos * Math.PI * 4 + i) * boruH * 0.25);
+
+    suCtx.beginPath();
+    suCtx.arc(dx, boruIciY, 3, 0, Math.PI * 2);
+    suCtx.fillStyle = 'rgba(93,173,226,0.9)';
+    suCtx.fill();
+
+    // Parıltı
+    suCtx.beginPath();
+    suCtx.arc(dx, boruIciY, 7, 0, Math.PI * 2);
+    var g = suCtx.createRadialGradient(dx, boruIciY, 0, dx, boruIciY, 7);
+    g.addColorStop(0, 'rgba(93,173,226,0.4)');
+    g.addColorStop(1, 'rgba(93,173,226,0)');
+    suCtx.fillStyle = g;
+    suCtx.fill();
+  }
+
+  suAnimId = requestAnimationFrame(suCiz);
+}
+
+ohmGuncelle();
+suCiz();
+
+
+/* ═══════════════════════════════════════════════════
+   SECTION 3: DEVRE SİMÜLATÖRÜ
+   ═══════════════════════════════════════════════════ */
+
+var devreCanvas = document.getElementById('devreCanvas');
+var devreCtx = devreCanvas.getContext('2d');
+var devreTip = 'seri';
+var ampulSayisi = 2;
+var anahtarKapali = false;
+var pilGerilim = 6;
+var ampulDirenc = 10; // Her ampulün direnci
+var devreAnimId = null;
+var akimNoktalar = [];
+
+// Akım noktaları oluştur
+function noktaOlustur() {
+  akimNoktalar = [];
+  for (var i = 0; i < 30; i++) {
+    akimNoktalar.push({ pos: Math.random() });
+  }
+}
+noktaOlustur();
+
+function devreBoyutla() {
+  var w = devreCanvas.parentElement.clientWidth;
+  devreCanvas.width = w;
+  devreCanvas.height = 280;
+}
+devreBoyutla();
+window.addEventListener('resize', devreBoyutla);
+
+function devreTuru(tip) {
+  devreTip = tip;
+  var tabS = document.getElementById('tabSeri');
+  var tabP = document.getElementById('tabParalel');
+  tabS.className = 'devre-tab' + (tip === 'seri' ? ' aktif-seri' : '');
+  tabP.className = 'devre-tab' + (tip === 'paralel' ? ' aktif-paralel' : '');
+  var badge = document.getElementById('durumBadge');
+  badge.className = 'durum-badge ' + tip;
+  badge.textContent = tip === 'seri' ? 'Seri Devre' : 'Paralel Devre';
+  hesapla();
+}
+
+function ampulDegistir(delta) {
+  ampulSayisi = Math.max(1, Math.min(4, ampulSayisi + delta));
+  document.getElementById('ampulSayi').textContent = ampulSayisi;
+  hesapla();
+}
+
+function anahtarToggle() {
+  anahtarKapali = !anahtarKapali;
+  var btn = document.getElementById('anahtarBtn');
+  if (anahtarKapali) {
+    btn.className = 'anahtar-btn kapali';
+    btn.textContent = '🔒 Anahtar: Kapalı';
+  } else {
+    btn.className = 'anahtar-btn acik';
+    btn.textContent = '🔓 Anahtar: Açık';
+  }
+  hesapla();
+}
+
+function pilGuncelle() {
+  pilGerilim = parseFloat(document.getElementById('pilV').value);
+  document.getElementById('pilVDeg').textContent = pilGerilim + 'V';
+  hesapla();
+}
+
+function hesapla() {
+  var Rtop, I, Vampul;
+  if (devreTip === 'seri') {
+    Rtop = ampulDirenc * ampulSayisi;
+    I = anahtarKapali ? pilGerilim / Rtop : 0;
+    Vampul = anahtarKapali ? pilGerilim / ampulSayisi : 0;
+  } else {
+    // Paralel: 1/Rtop = n * (1/R)
+    Rtop = ampulDirenc / ampulSayisi;
+    I = anahtarKapali ? pilGerilim / Rtop : 0;
+    Vampul = anahtarKapali ? pilGerilim : 0;
+  }
+
+  document.getElementById('infoPilV').textContent = pilGerilim + ' V';
+  document.getElementById('infoRTop').textContent = Rtop.toFixed(1) + ' Ω';
+  document.getElementById('infoAkim').textContent = I.toFixed(2) + ' A';
+  document.getElementById('infoVAmpul').textContent = Vampul.toFixed(1) + ' V';
+
+  var mesaj = document.getElementById('durumMesaj');
+  if (!anahtarKapali) {
+    mesaj.textContent = '⛔ Devre Açık — Akım akmıyor';
+    mesaj.style.color = 'var(--red)';
+  } else {
+    mesaj.textContent = '✅ Devre Kapalı — Akım akıyor';
+    mesaj.style.color = 'var(--green)';
+  }
+}
+
+// ── Seri Devre Yolu ──
+function seriYol(w, h, n) {
+  var pad = 40;
+  var topY = 60;
+  var botY = h - 40;
+  var leftX = pad + 40;
+  var rightX = w - pad - 20;
+
+  // Yol: sol-alt → sol-üst → üst boyunca (ampuller burada) → sağ-üst → sağ-alt (anahtar burada) → alt boyunca → sol-alt (pil burada)
+  var yol = [];
+
+  // Sol kenar (alttan üste)
+  yol.push({ x: leftX, y: botY, tip: 'tel' });
+  yol.push({ x: leftX, y: topY, tip: 'tel' });
+
+  // Üst kenar — ampuller eşit aralıklı
+  var ampulAralik = (rightX - leftX) / (n + 1);
+  for (var i = 0; i < n; i++) {
+    var ax = leftX + ampulAralik * (i + 1);
+    yol.push({ x: ax, y: topY, tip: 'ampul', idx: i });
+  }
+
+  // Sağ kenar (üstten alta)
+  yol.push({ x: rightX, y: topY, tip: 'tel' });
+
+  // Anahtar sağ kenarda
+  var anahtarY = (topY + botY) / 2;
+  yol.push({ x: rightX, y: anahtarY, tip: 'anahtar' });
+
+  yol.push({ x: rightX, y: botY, tip: 'tel' });
+
+  // Alt kenar — pil ortada
+  var pilX = (leftX + rightX) / 2;
+  yol.push({ x: pilX, y: botY, tip: 'pil' });
+
+  yol.push({ x: leftX, y: botY, tip: 'tel' });
+
+  return yol;
+}
+
+// ── Paralel Devre Yolu ──
+function paralelYol(w, h, n) {
+  // Paralel devre: pil solda, anahtar sağ altta, ampuller paralel dallar
+  var pad = 40;
+  var topY = 50;
+  var botY = h - 40;
+  var leftX = pad + 30;
+  var rightX = w - pad - 20;
+
+  return { leftX: leftX, rightX: rightX, topY: topY, botY: botY, n: n };
+}
+
+// ── Devre Çiz ──
+function devreCiz() {
+  var w = devreCanvas.width;
+  var h = devreCanvas.height;
+  devreCtx.clearRect(0, 0, w, h);
+
+  // Arka plan
+  devreCtx.fillStyle = '#0d1528';
+  devreCtx.fillRect(0, 0, w, h);
+
+  var Rtop, I, Vampul, parlaklik;
+  if (devreTip === 'seri') {
+    Rtop = ampulDirenc * ampulSayisi;
+    I = anahtarKapali ? pilGerilim / Rtop : 0;
+    Vampul = anahtarKapali ? pilGerilim / ampulSayisi : 0;
+    parlaklik = Vampul / 12;
+    seriDevreCiz(w, h, I, parlaklik);
+  } else {
+    Rtop = ampulDirenc / ampulSayisi;
+    I = anahtarKapali ? pilGerilim / Rtop : 0;
+    Vampul = anahtarKapali ? pilGerilim : 0;
+    parlaklik = Vampul / 12;
+    paralelDevreCiz(w, h, I, parlaklik);
+  }
+
+  devreAnimId = requestAnimationFrame(devreCiz);
+}
+
+function telCiz(x1, y1, x2, y2) {
+  devreCtx.beginPath();
+  devreCtx.moveTo(x1, y1);
+  devreCtx.lineTo(x2, y2);
+  devreCtx.strokeStyle = '#56d364';
+  devreCtx.lineWidth = 2.5;
+  devreCtx.stroke();
+}
+
+function pilCiz(x, y, V) {
+  // Pil sembolü: kısa çizgi (−) ve uzun çizgi (+)
+  devreCtx.strokeStyle = '#5dade2';
+  devreCtx.lineWidth = 2.5;
+
+  // Eksi (kısa)
+  devreCtx.beginPath();
+  devreCtx.moveTo(x - 6, y - 12);
+  devreCtx.lineTo(x - 6, y + 12);
+  devreCtx.stroke();
+
+  // Artı (uzun)
+  devreCtx.beginPath();
+  devreCtx.moveTo(x + 6, y - 18);
+  devreCtx.lineTo(x + 6, y + 18);
+  devreCtx.stroke();
+
+  // + ve - işaretleri
+  devreCtx.fillStyle = '#f85149';
+  devreCtx.font = 'bold 10px Poppins, sans-serif';
+  devreCtx.textAlign = 'center';
+  devreCtx.fillText('−', x - 6, y - 16);
+  devreCtx.fillStyle = '#56d364';
+  devreCtx.fillText('+', x + 6, y - 22);
+
+  // Gerilim etiketi
+  devreCtx.fillStyle = '#5dade2';
+  devreCtx.font = 'bold 10px Poppins, sans-serif';
+  devreCtx.fillText(V + 'V', x, y + 30);
+}
+
+function ampulCiz(x, y, parlaklik) {
+  var r = 16;
+
+  // Parıltı efekti
+  if (parlaklik > 0 && anahtarKapali) {
+    var glowR = 20 + parlaklik * 30;
+    var glow = devreCtx.createRadialGradient(x, y, 0, x, y, glowR);
+    glow.addColorStop(0, 'rgba(255,215,0,' + (parlaklik * 0.6) + ')');
+    glow.addColorStop(0.5, 'rgba(255,180,0,' + (parlaklik * 0.2) + ')');
+    glow.addColorStop(1, 'rgba(255,150,0,0)');
+    devreCtx.beginPath();
+    devreCtx.arc(x, y, glowR, 0, Math.PI * 2);
+    devreCtx.fillStyle = glow;
+    devreCtx.fill();
+  }
+
+  // Daire
+  devreCtx.beginPath();
+  devreCtx.arc(x, y, r, 0, Math.PI * 2);
+  devreCtx.strokeStyle = anahtarKapali && parlaklik > 0 ? '#ffd700' : '#8b949e';
+  devreCtx.lineWidth = 2;
+  devreCtx.stroke();
+
+  if (anahtarKapali && parlaklik > 0) {
+    devreCtx.fillStyle = 'rgba(255,215,0,' + (parlaklik * 0.3) + ')';
+    devreCtx.fill();
+  }
+
+  // X işareti
+  devreCtx.beginPath();
+  devreCtx.moveTo(x - 8, y - 8);
+  devreCtx.lineTo(x + 8, y + 8);
+  devreCtx.moveTo(x + 8, y - 8);
+  devreCtx.lineTo(x - 8, y + 8);
+  devreCtx.strokeStyle = anahtarKapali && parlaklik > 0 ? '#ffd700' : '#8b949e';
+  devreCtx.lineWidth = 1.5;
+  devreCtx.stroke();
+}
+
+function anahtarCiz(x, y, kapali) {
+  devreCtx.strokeStyle = kapali ? '#56d364' : '#f85149';
+  devreCtx.lineWidth = 2.5;
+
+  if (kapali) {
+    // Kapalı — düz çizgi
+    devreCtx.beginPath();
+    devreCtx.moveTo(x, y - 12);
+    devreCtx.lineTo(x, y + 12);
+    devreCtx.stroke();
+
+    // Nokta
+    devreCtx.beginPath();
+    devreCtx.arc(x, y - 12, 3, 0, Math.PI * 2);
+    devreCtx.fillStyle = '#56d364';
+    devreCtx.fill();
+    devreCtx.beginPath();
+    devreCtx.arc(x, y + 12, 3, 0, Math.PI * 2);
+    devreCtx.fill();
+  } else {
+    // Açık — iki nokta ve açık kol
+    devreCtx.beginPath();
+    devreCtx.arc(x, y + 12, 3, 0, Math.PI * 2);
+    devreCtx.fillStyle = '#f85149';
+    devreCtx.fill();
+
+    devreCtx.beginPath();
+    devreCtx.arc(x, y - 12, 3, 0, Math.PI * 2);
+    devreCtx.fill();
+
+    // Açık kol
+    devreCtx.beginPath();
+    devreCtx.moveTo(x, y + 12);
+    devreCtx.lineTo(x + 14, y - 8);
+    devreCtx.strokeStyle = '#f85149';
+    devreCtx.lineWidth = 2.5;
+    devreCtx.stroke();
+  }
+
+  // Etiket
+  devreCtx.fillStyle = kapali ? '#56d364' : '#f85149';
+  devreCtx.font = '9px Poppins, sans-serif';
+  devreCtx.textAlign = 'center';
+  devreCtx.fillText(kapali ? 'Kapalı' : 'Açık', x + 18, y + 4);
+}
+
+// Akım noktası çiz
+function akimNoktaCiz(x, y) {
+  devreCtx.beginPath();
+  devreCtx.arc(x, y, 3, 0, Math.PI * 2);
+  devreCtx.fillStyle = '#ffd700';
+  devreCtx.fill();
+
+  var g = devreCtx.createRadialGradient(x, y, 0, x, y, 8);
+  g.addColorStop(0, 'rgba(255,215,0,0.5)');
+  g.addColorStop(1, 'rgba(255,215,0,0)');
+  devreCtx.beginPath();
+  devreCtx.arc(x, y, 8, 0, Math.PI * 2);
+  devreCtx.fillStyle = g;
+  devreCtx.fill();
+}
+
+// ── Seri Devre Çiz ──
+function seriDevreCiz(w, h, I, parlaklik) {
+  var pad = 50;
+  var topY = 55;
+  var botY = h - 45;
+  var leftX = pad;
+  var rightX = w - pad;
+
+  // Tel çiz — dikdörtgen döngü
+  // Alt kenar
+  telCiz(leftX, botY, rightX, botY);
+  // Sağ kenar
+  telCiz(rightX, botY, rightX, topY);
+  // Üst kenar
+  telCiz(rightX, topY, leftX, topY);
+  // Sol kenar
+  telCiz(leftX, topY, leftX, botY);
+
+  // Pil — sol kenarda ortada
+  var pilY = (topY + botY) / 2;
+  pilCiz(leftX, pilY, pilGerilim);
+
+  // Ampuller — üst kenarda eşit aralıklı
+  var ampulPozlar = [];
+  var ampulAralik = (rightX - leftX) / (ampulSayisi + 1);
+  for (var i = 0; i < ampulSayisi; i++) {
+    var ax = leftX + ampulAralik * (i + 1);
+    ampulPozlar.push({ x: ax, y: topY });
+    ampulCiz(ax, topY, parlaklik);
+
+    // Direnç etiketi
+    devreCtx.fillStyle = '#ffa657';
+    devreCtx.font = '9px Poppins, sans-serif';
+    devreCtx.textAlign = 'center';
+    devreCtx.fillText(ampulDirenc + 'Ω', ax, topY + 28);
+  }
+
+  // Anahtar — sağ kenarda ortada
+  var anahtarY = (topY + botY) / 2;
+  anahtarCiz(rightX, anahtarY, anahtarKapali);
+
+  // Akım animasyonu
+  if (anahtarKapali && I > 0) {
+    var hiz = I * 0.003;
+
+    // Yol: sol-alt → alt → sağ-alt → sağ-üst → üst → sol-üst → sol-alt
+    // Toplam yol uzunluğu hesapla
+    var kenarlar = [
+      { x1: leftX, y1: botY, x2: rightX, y2: botY },   // alt
+      { x1: rightX, y1: botY, x2: rightX, y2: topY },   // sağ
+      { x1: rightX, y1: topY, x2: leftX, y2: topY },    // üst
+      { x1: leftX, y1: topY, x2: leftX, y2: botY }      // sol
+    ];
+
+    var toplamUzunluk = 0;
+    var uzunluklar = [];
+    for (var i = 0; i < kenarlar.length; i++) {
+      var k = kenarlar[i];
+      var uz = Math.sqrt(Math.pow(k.x2 - k.x1, 2) + Math.pow(k.y2 - k.y1, 2));
+      uzunluklar.push(uz);
+      toplamUzunluk += uz;
+    }
+
+    for (var i = 0; i < akimNoktalar.length; i++) {
+      var n = akimNoktalar[i];
+      n.pos += hiz;
+      if (n.pos > 1) n.pos -= 1;
+
+      // Pozisyonu gerçek koordinata çevir
+      var mesafe = n.pos * toplamUzunluk;
+      var kalan = mesafe;
+      for (var j = 0; j < kenarlar.length; j++) {
+        if (kalan <= uzunluklar[j]) {
+          var oran = kalan / uzunluklar[j];
+          var k = kenarlar[j];
+          var nx = k.x1 + (k.x2 - k.x1) * oran;
+          var ny = k.y1 + (k.y2 - k.y1) * oran;
+          akimNoktaCiz(nx, ny);
+          break;
+        }
+        kalan -= uzunluklar[j];
+      }
+    }
+  }
+}
+
+// ── Paralel Devre Çiz ──
+function paralelDevreCiz(w, h, I, parlaklik) {
+  var pad = 50;
+  var topY = 40;
+  var botY = h - 40;
+  var leftX = pad;
+  var rightX = w - pad;
+  var midTopY = topY + 15;
+  var midBotY = botY - 15;
+
+  // Ana teller — sol ve sağ dikey hatlar
+  telCiz(leftX, midTopY, leftX, midBotY);
+  telCiz(rightX, midTopY, rightX, midBotY);
+
+  // Üst yatay bağlantı (sol → sağ)
+  telCiz(leftX, midTopY, rightX, midTopY);
+  // Alt yatay bağlantı (sol → sağ)
+  telCiz(leftX, midBotY, rightX, midBotY);
+
+  // Pil — sol kenarda
+  var pilY = (midTopY + midBotY) / 2;
+  pilCiz(leftX, pilY, pilGerilim);
+
+  // Anahtar — sağ kenarda
+  var anahtarY = (midTopY + midBotY) / 2;
+  anahtarCiz(rightX, anahtarY, anahtarKapali);
+
+  // Paralel dallar — ampuller yatay olarak dağıtılmış
+  var dalAralik = (midBotY - midTopY) / (ampulSayisi + 1);
+  var dalLeftX = leftX + 60;
+  var dalRightX = rightX - 60;
+  var dalMidX = (dalLeftX + dalRightX) / 2;
+
+  for (var i = 0; i < ampulSayisi; i++) {
+    var dalY = midTopY + dalAralik * (i + 1);
+
+    // Dal teli: üst hattan ayrıl → ampul → alt hatta birleş
+    telCiz(dalLeftX, midTopY, dalLeftX, dalY);
+    telCiz(dalLeftX, dalY, dalMidX - 20, dalY);
+    telCiz(dalMidX + 20, dalY, dalRightX, dalY);
+    telCiz(dalRightX, dalY, dalRightX, midBotY);
+
+    // Ampul
+    ampulCiz(dalMidX, dalY, parlaklik);
+
+    // Direnç etiketi
+    devreCtx.fillStyle = '#ffa657';
+    devreCtx.font = '9px Poppins, sans-serif';
+    devreCtx.textAlign = 'center';
+    devreCtx.fillText(ampulDirenc + 'Ω', dalMidX, dalY + 26);
+  }
+
+  // Sol bağlantı hatları (üst ve alt bara → dal başlangıçları)
+  telCiz(leftX, midTopY, dalLeftX, midTopY);
+  telCiz(leftX, midBotY, dalLeftX, midBotY);
+  // Sağ bağlantı hatları
+  telCiz(dalRightX, midTopY, rightX, midTopY);
+  telCiz(dalRightX, midBotY, rightX, midBotY);
+
+  // Akım animasyonu — paralel dallar
+  if (anahtarKapali && I > 0) {
+    var hiz = (I / ampulSayisi) * 0.003;
+
+    // Ana döngü noktaları
+    var anaHiz = I * 0.002;
+
+    for (var i = 0; i < akimNoktalar.length; i++) {
+      var n = akimNoktalar[i];
+      n.pos += hiz;
+      if (n.pos > 1) n.pos -= 1;
+
+      // Her dal için noktalar dağıt
+      var dalIdx = i % ampulSayisi;
+      var dalY = midTopY + dalAralik * (dalIdx + 1);
+
+      // Dal yolu: üst → sol aşağı → sola → ampul → sağa → sağ yukarı → alt
+      var yolUzunluk = 4; // segment sayısı
+      var segment = n.pos * yolUzunluk;
+      var segIdx = Math.floor(segment);
+      var segOran = segment - segIdx;
+      var nx, ny;
+
+      if (segIdx === 0) {
+        // Sol dikey (üst → dal seviyesi)
+        nx = dalLeftX;
+        ny = midTopY + (dalY - midTopY) * segOran;
+      } else if (segIdx === 1) {
+        // Yatay sol → ampul
+        nx = dalLeftX + (dalMidX - dalLeftX) * segOran;
+        ny = dalY;
+      } else if (segIdx === 2) {
+        // Yatay ampul → sağ
+        nx = dalMidX + (dalRightX - dalMidX) * segOran;
+        ny = dalY;
+      } else {
+        // Sağ dikey (dal seviyesi → alt)
+        nx = dalRightX;
+        ny = dalY + (midBotY - dalY) * segOran;
+      }
+
+      akimNoktaCiz(nx, ny);
+    }
+  }
+}
+
+hesapla();
+devreCiz();
+
+// Canvas tıklama — anahtar toggle
+devreCanvas.addEventListener('click', function(e) {
+  var rect = devreCanvas.getBoundingClientRect();
+  var mx = (e.clientX - rect.left) * (devreCanvas.width / rect.width);
+  var my = (e.clientY - rect.top) * (devreCanvas.height / rect.height);
+
+  var w = devreCanvas.width;
+  var h = devreCanvas.height;
+  var pad = 50;
+  var rightX = w - pad;
+  var topY = devreTip === 'seri' ? 55 : 55;
+  var botY = devreTip === 'seri' ? h - 45 : h - 55;
+  var anahtarY = (topY + botY) / 2;
+
+  // Anahtar bölgesine tıklandı mı?
+  if (Math.abs(mx - rightX) < 30 && Math.abs(my - anahtarY) < 25) {
+    anahtarToggle();
+  }
+});
+
+</script>
+</body>
+</html>

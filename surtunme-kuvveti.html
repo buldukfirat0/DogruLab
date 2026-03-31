@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sürtünme Kuvveti — DoğruLab</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #070b16;
+      --bg2: #0d1528;
+      --bg3: #161b22;
+      --border: #1a2a44;
+      --border2: #30363d;
+      --text: #d0d0d0;
+      --text2: #8b949e;
+      --heading1: #7eb8da;
+      --heading2: #5dade2;
+      --heading3: #48c9b0;
+      --cyan: #5dade2;
+      --teal: #48c9b0;
+      --green: #56d364;
+      --orange: #ffa657;
+      --red: #f85149;
+      --purple: #8957e5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      line-height: 1.75;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: rgba(7, 11, 22, 0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--cyan), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .deney-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(93, 173, 226, 0.12);
+      color: var(--cyan);
+      border: 1px solid rgba(93, 173, 226, 0.3);
+      border-radius: 999px;
+      padding: 4px 12px;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 48px 0 40px;
+      animation: fadeUp 0.5s ease-out;
+    }
+
+    .hero-emoji {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 0 20px rgba(93, 173, 226, 0.4));
+    }
+
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--heading1);
+      margin-bottom: 8px;
+    }
+
+    .hero p {
+      color: var(--text2);
+      font-size: 0.9rem;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .meta-chip {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      background: var(--bg3);
+    }
+
+    .meta-chip.zorluk { border-color: rgba(86, 211, 100, 0.3); color: var(--green); background: rgba(86, 211, 100, 0.08); }
+    .meta-chip.sure { border-color: rgba(255, 166, 87, 0.3); color: var(--orange); background: rgba(255, 166, 87, 0.08); }
+    .meta-chip.sinif { border-color: rgba(93, 173, 226, 0.3); color: var(--cyan); background: rgba(93, 173, 226, 0.08); }
+
+    /* ── SECTIONS ── */
+    section {
+      margin-bottom: 32px;
+      animation: fadeUp 0.4s ease-out;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--heading2);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title span { font-size: 1.2rem; }
+
+    .card {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    /* ── NOT KUTUSU ── */
+    .note-box {
+      background: var(--bg3);
+      border-left: 4px solid var(--cyan);
+      padding: 14px 18px;
+      margin: 12px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.875rem;
+    }
+    .note-box.yesil { border-color: var(--green); }
+    .note-box.turuncu { border-color: var(--orange); }
+    .note-box.mor { border-color: var(--purple); }
+
+    .note-box strong { color: var(--heading3); display: block; margin-bottom: 4px; }
+
+    /* ── SİMÜLASYON ── */
+    .sim-container {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .sim-canvas-wrap {
+      position: relative;
+      height: 220px;
+    }
+
+    #simCanvas {
+      width: 100%;
+      height: 220px;
+      display: block;
+    }
+
+    .sim-controls {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slider-label {
+      font-size: 0.8rem;
+      color: var(--text2);
+      min-width: 130px;
+    }
+
+    .slider-label strong { color: var(--text); font-size: 0.85rem; }
+
+    input[type=range] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 6px;
+      background: var(--border2);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--cyan);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .val-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--cyan);
+      min-width: 48px;
+      text-align: right;
+    }
+
+    .sim-info-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .info-card {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      min-width: 120px;
+    }
+
+    .info-card .label { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-card .value { font-size: 1.1rem; font-weight: 700; color: var(--teal); margin-top: 2px; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 9px 20px;
+      border-radius: 10px;
+      border: none;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn:active { transform: scale(0.96); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--teal));
+      color: #070b16;
+    }
+
+    .btn-primary:hover { filter: brightness(1.1); }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+    }
+
+    .btn-secondary:hover { color: var(--text); border-color: var(--text2); }
+
+    /* ── ADIMLAR ── */
+    .adimlar-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+    .adim-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .adim-item:hover { border-color: var(--border); }
+    .adim-item.tamamlandi { border-color: rgba(86, 211, 100, 0.3); background: rgba(86, 211, 100, 0.04); }
+    .adim-item.tamamlandi .adim-text { color: var(--text2); text-decoration: line-through; }
+
+    .adim-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: all 0.2s;
+      font-size: 0.75rem;
+    }
+
+    .adim-item.tamamlandi .adim-check {
+      background: var(--green);
+      border-color: var(--green);
+      color: #070b16;
+    }
+
+    .adim-no {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--cyan);
+      min-width: 22px;
+      text-align: center;
+      padding-top: 2px;
+    }
+
+    .adim-text { font-size: 0.875rem; line-height: 1.5; }
+    .adim-text strong { color: var(--heading3); }
+
+    /* ── GÖZLEM DEFTERİ ── */
+    .tablo-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th {
+      background: var(--bg2);
+      color: var(--heading3);
+      font-weight: 600;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    td input, td select {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.82rem;
+      width: 100%;
+    }
+
+    td input:focus, td select:focus {
+      outline: none;
+      border-color: var(--cyan);
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.875rem;
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    textarea:focus { outline: none; border-color: var(--cyan); }
+
+    .form-row { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+    .form-label { font-size: 0.8rem; color: var(--text2); font-weight: 500; }
+
+    /* ── FORMÜL ── */
+    .formul-card {
+      background: rgba(93, 173, 226, 0.06);
+      border: 1px solid rgba(93, 173, 226, 0.2);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .formul {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--heading1);
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    .formul-aciklama {
+      font-size: 0.8rem;
+      color: var(--text2);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .formul-aciklama span { white-space: nowrap; }
+    .formul-aciklama strong { color: var(--cyan); }
+
+    /* ── SONUÇ & KAYDET ── */
+    .kaydet-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--cyan), var(--teal));
+      color: #070b16;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 16px;
+    }
+
+    .kaydet-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .kaydet-btn:active { transform: scale(0.98); }
+
+    /* ── QR ── */
+    .qr-section {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 20px;
+    }
+
+    #qrcode {
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      flex-shrink: 0;
+    }
+
+    .qr-info h3 { color: var(--heading2); font-size: 0.95rem; margin-bottom: 6px; }
+    .qr-info p { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+
+    /* ── ANIMASYONLAR ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    .pulse { animation: pulse 2s infinite ease-in-out; }
+
+    /* ── İLERLEME ÇUBUĞU ── */
+    .progress-bar-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .progress-bar-bg {
+      flex: 1;
+      height: 8px;
+      background: var(--border2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--teal));
+      border-radius: 4px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .progress-text {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--teal);
+      white-space: nowrap;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.5rem; }
+      .qr-section { flex-direction: column; text-align: center; }
+      .sim-info-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">⚗️ DoğruLab</div>
+    <div class="deney-badge">Fizik · 9. Sınıf</div>
+  </header>
+
+  <main>
+
+    <!-- HERO -->
+    <div class="hero">
+      <span class="hero-emoji">🧲</span>
+      <h1>Sürtünme Kuvveti Deneyi</h1>
+      <p>Farklı yüzeylerdeki sürtünme kuvvetini keşfet, statik ve kinetik sürtünmeyi karşılaştır.</p>
+      <div class="meta-row">
+        <div class="meta-chip sinif">📚 9. Sınıf Fizik</div>
+        <div class="meta-chip sure">⏱️ 25–30 dk</div>
+        <div class="meta-chip zorluk">⭐ Orta Düzey</div>
+      </div>
+    </div>
+
+    <!-- İLERLEME -->
+    <div class="progress-bar-wrap">
+      <span style="font-size:0.85rem; color:var(--text2);">Tamamlanan adımlar</span>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <span class="progress-text" id="progressText">0/6</span>
+    </div>
+
+    <!-- TEORİK BİLGİ -->
+    <section>
+      <div class="section-title"><span>📖</span> Teorik Bilgi</div>
+
+      <div class="card" style="font-size:0.875rem; line-height:1.8;">
+        <p><strong style="color:var(--heading3);">Sürtünme kuvveti</strong>, birbirine temas eden iki yüzey arasındaki hareket veya hareket eğilimine karşı koyan bir kuvvettir. İki ana türü vardır:</p>
+
+        <div class="note-box" style="margin-top:14px;">
+          <strong>🔴 Statik Sürtünme (fs)</strong>
+          Cisim henüz hareket etmezken ortaya çıkar. Uygulanan kuvvetle birlikte artar ve <em>maksimum statik sürtünme</em>'ye kadar ulaşabilir. Cisim hareket etmediği sürece bu kuvvet mevcut kuvvete eşittir.
+        </div>
+
+        <div class="note-box yesil" style="margin-top:10px;">
+          <strong>🟢 Kinetik Sürtünme (fk)</strong>
+          Cisim hareket halindeyken etki eder. Genellikle maksimum statik sürtünmeden <em>küçüktür</em> ve sabit kalır (hıza bağlı değildir).
+        </div>
+      </div>
+
+      <div class="formul-card" style="margin-top:14px;">
+        <div class="formul">f = μ · N</div>
+        <div class="formul-aciklama">
+          <span><strong>f</strong> = Sürtünme kuvveti (N)</span>
+          <span><strong>μ</strong> = Sürtünme katsayısı (birimsiz)</span>
+          <span><strong>N</strong> = Normal kuvvet (N)</span>
+        </div>
+      </div>
+
+      <div class="note-box turuncu" style="margin-top:14px;">
+        <strong>💡 Dikkat Et</strong>
+        Sürtünme kuvveti, temas eden yüzey <em>alanına bağlı değildir!</em> Yalnızca normal kuvvet ve yüzey türü (μ) belirleyicidir.
+      </div>
+    </section>
+
+    <!-- SİMÜLASYON -->
+    <section>
+      <div class="section-title"><span>🎮</span> İnteraktif Simülasyon</div>
+      <div class="sim-container">
+        <div class="sim-canvas-wrap">
+          <canvas id="simCanvas"></canvas>
+        </div>
+        <div class="sim-controls">
+          <div class="slider-row">
+            <div class="slider-label">
+              Kütle (m)<br>
+              <strong id="kutleGoster">2.0 kg</strong>
+            </div>
+            <input type="range" id="kutleSlider" min="1" max="10" step="0.5" value="2">
+            <div class="val-badge">10 kg</div>
+          </div>
+          <div class="slider-row">
+            <div class="slider-label">
+              Yüzey Türü (μ)<br>
+              <strong id="yuzeyGoster">Ahşap (0.35)</strong>
+            </div>
+            <input type="range" id="yuzeySlider" min="0" max="4" step="1" value="1">
+            <div class="val-badge" style="font-size:0.7rem;">Buz→Metal</div>
+          </div>
+          <div class="slider-row">
+            <div class="slider-label">
+              Uygulanan Kuvvet<br>
+              <strong id="kuvvetGoster">5.0 N</strong>
+            </div>
+            <input type="range" id="kuvvetSlider" min="0" max="60" step="1" value="5">
+            <div class="val-badge">60 N</div>
+          </div>
+          <div class="sim-info-row">
+            <div class="info-card">
+              <div class="label">Normal Kuvvet</div>
+              <div class="value" id="normalKuvvet">19.6 N</div>
+            </div>
+            <div class="info-card">
+              <div class="label">Sürtünme Kuvveti</div>
+              <div class="value" id="surtunmeVal">6.9 N</div>
+            </div>
+            <div class="info-card">
+              <div class="label">Hareket Durumu</div>
+              <div class="value" id="hareketDurum" style="font-size:0.85rem;">⛔ Durgun</div>
+            </div>
+            <div class="info-card">
+              <div class="label">İvme</div>
+              <div class="value" id="ivmeVal">0.0 m/s²</div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="oynatBtn" onclick="toggleSim()">▶ Başlat</button>
+            <button class="btn btn-secondary" onclick="resetSim()">↺ Sıfırla</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DENEY ADIMLARI -->
+    <section>
+      <div class="section-title"><span>🔬</span> Deney Adımları</div>
+      <p style="font-size:0.8rem; color:var(--text2); margin-bottom:14px;">Tamamladığın adımlara tıkla.</p>
+      <ul class="adimlar-list" id="adimlarList">
+        <li class="adim-item" onclick="adimToggle(this)">
+          <div class="adim-no">1</div>
+          <div class="adim-check"></div>
+          <div class="adim-text"><strong>Malzemeleri hazırla:</strong> Dinamometre, farklı yüzeyler (ahşap tahta, metal levha, kumaş), deney arabası veya ağırlık bloğu.</div>
+        </li>
+        <li class="adim-item" onclick="adimToggle(this)">
+          <div class="adim-no">2</div>
+          <div class="adim-check"></div>
+          <div class="adim-text"><strong>Ahşap yüzey üzerinde:</strong> Bloğu yüzeye yerleştir. Dinamometreyi bloğa bağla ve <em>yavaşça</em> çek. Cisim ilk harekete geçtiği andaki değeri oku → Maksimum Statik Sürtünme.</div>
+        </li>
+        <li class="adim-item" onclick="adimToggle(this)">
+          <div class="adim-no">3</div>
+          <div class="adim-check"></div>
+          <div class="adim-text"><strong>Kinetik sürtünmeyi ölç:</strong> Cisim hareket ederken sabit hızda çektiğindeki dinamometre değerini oku → Kinetik Sürtünme Kuvveti.</div>
+        </li>
+        <li class="adim-item" onclick="adimToggle(this)">
+          <div class="adim-no">4</div>
+          <div class="adim-check"></div>
+          <div class="adim-text"><strong>Farklı yüzeyleri dene:</strong> Metal ve kumaş yüzeyler için aynı ölçümleri tekrarla. Her ölçümü gözlem tablosuna kaydet.</div>
+        </li>
+        <li class="adim-item" onclick="adimToggle(this)">
+          <div class="adim-no">5</div>
+          <div class="adim-check"></div>
+          <div class="adim-text"><strong>Kütleyi değiştir:</strong> Bloğun üzerine ağırlık ekle. Kütleyi 2 katına çıkardığında sürtünme kuvvetinin nasıl değiştiğini gözlemle.</div>
+        </li>
+        <li class="adim-item" onclick="adimToggle(this)">
+          <div class="adim-no">6</div>
+          <div class="adim-check"></div>
+          <div class="adim-text"><strong>Sonuçları karşılaştır:</strong> μ değerlerini hesapla (f/N formülü). Hangi yüzeyin en yüksek, hangisinin en düşük μ değerine sahip olduğunu belirle.</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- GÖZLEM DEFTERİ -->
+    <section>
+      <div class="section-title"><span>📝</span> Gözlem Defteri</div>
+      <div class="card">
+        <div class="tablo-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Yüzey Türü</th>
+                <th>Kütle (kg)</th>
+                <th>N = mg (N)</th>
+                <th>fs maks (N)</th>
+                <th>fk (N)</th>
+                <th>μs = fs/N</th>
+                <th>μk = fk/N</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ahşap</td>
+                <td><input type="number" placeholder="kg" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="—" step="0.01"></td>
+                <td><input type="number" placeholder="—" step="0.01"></td>
+              </tr>
+              <tr>
+                <td>Metal</td>
+                <td><input type="number" placeholder="kg" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="—" step="0.01"></td>
+                <td><input type="number" placeholder="—" step="0.01"></td>
+              </tr>
+              <tr>
+                <td>Kumaş</td>
+                <td><input type="number" placeholder="kg" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="—" step="0.01"></td>
+                <td><input type="number" placeholder="—" step="0.01"></td>
+              </tr>
+              <tr>
+                <td>Buz/Düz zemin</td>
+                <td><input type="number" placeholder="kg" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="N" step="0.1"></td>
+                <td><input type="number" placeholder="—" step="0.01"></td>
+                <td><input type="number" placeholder="—" step="0.01"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="form-row" style="margin-top:20px;">
+          <div class="form-label">📌 Gözlemlerim</div>
+          <textarea placeholder="Deneyde dikkat ettiğin noktaları, şaşırdığın sonuçları buraya yaz..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">💬 Sonuç ve Yorum</div>
+          <textarea placeholder="Farklı yüzeylerin sürtünme katsayılarını karşılaştır. Beklediğin sonuçlarla ne kadar örtüştü?"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">❓ Aklıma Gelen Sorular</div>
+          <textarea placeholder="Bu deney sende hangi soruları uyandırdı?"></textarea>
+        </div>
+
+        <button class="kaydet-btn" onclick="kaydet()">💾 Gözlemleri Kaydet (PDF)</button>
+      </div>
+    </section>
+
+    <!-- SONUÇ KARŞILAŞTIRMA -->
+    <section>
+      <div class="section-title"><span>📊</span> Beklenen Sonuçlar</div>
+      <div class="note-box">
+        <strong>Tipik μ Değerleri (Referans)</strong>
+        <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:10px; font-size:0.82rem;">
+          <span style="color:var(--text2);">Kumaş–Tahta: <strong style="color:var(--orange);">0.40–0.50</strong></span>
+          <span style="color:var(--text2);">Ahşap–Ahşap: <strong style="color:var(--orange);">0.25–0.40</strong></span>
+          <span style="color:var(--text2);">Metal–Metal: <strong style="color:var(--cyan);">0.15–0.25</strong></span>
+          <span style="color:var(--text2);">Buz–Buz: <strong style="color:var(--teal);">0.03–0.05</strong></span>
+        </div>
+      </div>
+      <div class="note-box yesil" style="margin-top:10px;">
+        <strong>✅ Önemli Çıkarım</strong>
+        Her yüzey için statik sürtünme katsayısı (μs), kinetik sürtünme katsayısından (μk) büyük çıkmalı. Bu doğru gözlemlediysen deneyin başarılı olmuş demektir!
+      </div>
+    </section>
+
+    <!-- QR KOD -->
+    <section>
+      <div class="section-title"><span>📱</span> Bu Deneyin QR Kodu</div>
+      <div class="card">
+        <div class="qr-section">
+          <div id="qrcode"></div>
+          <div class="qr-info">
+            <h3>Sınıf arkadaşlarınla paylaş</h3>
+            <p>Bu QR kodu taratarak aynı deneyin interaktif simülasyonuna doğrudan erişilebilir. Öğretmen, kodu tahtaya yansıtabilir veya kağıda basabilir.</p>
+            <p style="margin-top:8px; color:var(--cyan); font-size:0.75rem;">⚡ Çevrimdışı çalışır · Uygulama gerekmez</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ── QR KOD ──
+    window.addEventListener('load', () => {
+      new QRCode(document.getElementById("qrcode"), {
+        text: window.location.href,
+        width: 120,
+        height: 120,
+        colorDark: "#070b16",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    });
+
+    // ── ADIM TAKIBI ──
+    const TOPLAM_ADIM = 6;
+    function adimToggle(el) {
+      el.classList.toggle('tamamlandi');
+      if (el.classList.contains('tamamlandi')) {
+        el.querySelector('.adim-check').textContent = '✓';
+      } else {
+        el.querySelector('.adim-check').textContent = '';
+      }
+      progressGuncelle();
+    }
+
+    function progressGuncelle() {
+      const tamamlanan = document.querySelectorAll('.adim-item.tamamlandi').length;
+      const yuzde = (tamamlanan / TOPLAM_ADIM) * 100;
+      document.getElementById('progressFill').style.width = yuzde + '%';
+      document.getElementById('progressText').textContent = `${tamamlanan}/${TOPLAM_ADIM}`;
+    }
+
+    // ── SİMÜLASYON ──
+    const YUZEYLER = [
+      { ad: 'Buz (0.03)',  mu: 0.03,  renk: '#48c9b0' },
+      { ad: 'Ahşap (0.35)', mu: 0.35, renk: '#ffa657' },
+      { ad: 'Metal (0.20)', mu: 0.20, renk: '#5dade2' },
+      { ad: 'Kumaş (0.50)', mu: 0.50, renk: '#8957e5' },
+      { ad: 'Kauçuk (0.75)',mu: 0.75, renk: '#f85149' },
+    ];
+
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    let animId = null;
+    let calisiyor = false;
+    let blokX = 80;
+    let hiz = 0;
+
+    function canvasResize() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = 220;
+    }
+
+    window.addEventListener('resize', () => { canvasResize(); ciz(); });
+    canvasResize();
+
+    function getParams() {
+      const kutle = parseFloat(document.getElementById('kutleSlider').value);
+      const yuzeyIdx = parseInt(document.getElementById('yuzeySlider').value);
+      const kuvvet = parseFloat(document.getElementById('kuvvetSlider').value);
+      const g = 9.8;
+      const N = kutle * g;
+      const yuzeySec = YUZEYLER[yuzeyIdx];
+      const fk = yuzeySec.mu * N;
+      const fsMax = yuzeySec.mu * 1.2 * N;
+      return { kutle, yuzeyIdx, kuvvet, N, fk, fsMax, yuzeySec };
+    }
+
+    function bilgileriGuncelle() {
+      const { kutle, yuzeyIdx, kuvvet, N, fk, fsMax, yuzeySec } = getParams();
+      document.getElementById('kutleGoster').textContent = `${kutle.toFixed(1)} kg`;
+      document.getElementById('yuzeyGoster').textContent = yuzeySec.ad;
+      document.getElementById('kuvvetGoster').textContent = `${kuvvet.toFixed(1)} N`;
+      document.getElementById('normalKuvvet').textContent = `${N.toFixed(1)} N`;
+
+      const aktifSurtunme = calisiyor ? fk : Math.min(kuvvet, fsMax);
+      document.getElementById('surtunmeVal').textContent = `${aktifSurtunme.toFixed(1)} N`;
+
+      const hareket = kuvvet > fsMax;
+      document.getElementById('hareketDurum').textContent = hareket ? '🟢 Hareket' : '⛔ Durgun';
+      document.getElementById('hareketDurum').style.color = hareket ? '#56d364' : '#f85149';
+
+      const ivme = hareket ? ((kuvvet - fk) / kutle).toFixed(2) : '0.00';
+      document.getElementById('ivmeVal').textContent = `${ivme} m/s²`;
+    }
+
+    function ciz() {
+      const W = canvas.width, H = canvas.height;
+      const { kutle, kuvvet, yuzeySec, fk, N, fsMax } = getParams();
+      ctx.clearRect(0, 0, W, H);
+
+      // Zemin
+      ctx.fillStyle = '#0d1528';
+      ctx.fillRect(0, 0, W, H);
+
+      // Zemin çizgisi + yüzey rengi
+      const zeminY = H - 50;
+      ctx.fillStyle = yuzeySec.renk + '20';
+      ctx.fillRect(0, zeminY, W, H - zeminY);
+      ctx.strokeStyle = yuzeySec.renk;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, zeminY); ctx.lineTo(W, zeminY); ctx.stroke();
+
+      // Yüzey etiketi
+      ctx.fillStyle = yuzeySec.renk;
+      ctx.font = '11px Poppins, sans-serif';
+      ctx.fillText('Yüzey: ' + yuzeySec.ad, 12, H - 18);
+
+      // Blok
+      const blokW = Math.max(40, kutle * 6);
+      const blokH = blokW * 0.7;
+      const blokY = zeminY - blokH;
+      const drawX = Math.min(blokX, W - blokW - 20);
+
+      // Blok gölge
+      ctx.shadowColor = yuzeySec.renk;
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#1a2a44';
+      ctx.strokeStyle = yuzeySec.renk;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(drawX, blokY, blokW, blokH, 6);
+      ctx.fill(); ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Kütle etiketi
+      ctx.fillStyle = '#d0d0d0';
+      ctx.font = `bold ${Math.min(14, blokW * 0.25)}px Poppins, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(`${kutle}kg`, drawX + blokW / 2, blokY + blokH / 2 + 5);
+      ctx.textAlign = 'left';
+
+      // Kuvvet oku (F)
+      if (kuvvet > 0) {
+        okCiz(ctx, drawX + blokW, blokY + blokH / 2, Math.min(kuvvet * 2, 80), 0, '#5dade2', `F=${kuvvet}N`);
+      }
+
+      // Sürtünme oku (f - karşı yönde)
+      const aktifSurtunme = Math.min(kuvvet, fsMax);
+      if (aktifSurtunme > 0) {
+        const calisan = kuvvet > fsMax;
+        const fGoster = calisan ? fk : aktifSurtunme;
+        okCiz(ctx, drawX, blokY + blokH / 2, -Math.min(fGoster * 2, 70), 0, '#f85149', `f=${fGoster.toFixed(1)}N`);
+      }
+
+      // Normal kuvvet oku (N - yukarı)
+      okCiz(ctx, drawX + blokW / 2, zeminY, 0, -Math.min(N * 0.8, 55), '#56d364', `N=${N.toFixed(1)}N`);
+
+      // Ağırlık oku (mg - aşağı) — gövde içinde göster
+      ctx.fillStyle = '#ffa657';
+      ctx.font = '10px Poppins, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`mg=${N.toFixed(1)}N↓`, drawX + blokW / 2, blokY - 6);
+      ctx.textAlign = 'left';
+    }
+
+    function okCiz(ctx, x, y, dx, dy, renk, etiket) {
+      const uzunluk = Math.sqrt(dx * dx + dy * dy);
+      if (uzunluk < 2) return;
+      const uc = 8;
+      const aci = Math.atan2(dy, dx);
+
+      ctx.strokeStyle = renk;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + dx, y + dy);
+      ctx.stroke();
+
+      // ok ucu
+      ctx.fillStyle = renk;
+      ctx.beginPath();
+      ctx.moveTo(x + dx, y + dy);
+      ctx.lineTo(x + dx - uc * Math.cos(aci - 0.4), y + dy - uc * Math.sin(aci - 0.4));
+      ctx.lineTo(x + dx - uc * Math.cos(aci + 0.4), y + dy - uc * Math.sin(aci + 0.4));
+      ctx.closePath();
+      ctx.fill();
+
+      // etiket
+      ctx.fillStyle = renk;
+      ctx.font = 'bold 11px Poppins, sans-serif';
+      ctx.fillText(etiket, x + dx + (dx > 0 ? 6 : -50), y + dy + (dy < 0 ? -4 : 14));
+    }
+
+    let zamanDamgasi = null;
+    function animasyon(ts) {
+      if (!zamanDamgasi) zamanDamgasi = ts;
+      const dt = Math.min((ts - zamanDamgasi) / 1000, 0.05);
+      zamanDamgasi = ts;
+
+      const { kuvvet, fk, kutle, fsMax } = getParams();
+      if (kuvvet > fsMax) {
+        const ivme = (kuvvet - fk) / kutle;
+        hiz += ivme * dt;
+        blokX += hiz * dt * 60;
+
+        if (blokX > canvas.width + 100) {
+          blokX = 80;
+          hiz = 0;
+        }
+      }
+
+      ciz();
+      bilgileriGuncelle();
+      animId = requestAnimationFrame(animasyon);
+    }
+
+    function toggleSim() {
+      calisiyor = !calisiyor;
+      document.getElementById('oynatBtn').textContent = calisiyor ? '⏸ Durdur' : '▶ Başlat';
+      if (calisiyor) {
+        zamanDamgasi = null;
+        animId = requestAnimationFrame(animasyon);
+      } else {
+        cancelAnimationFrame(animId);
+        ciz();
+        bilgileriGuncelle();
+      }
+    }
+
+    function resetSim() {
+      calisiyor = false;
+      cancelAnimationFrame(animId);
+      blokX = 80; hiz = 0;
+      document.getElementById('oynatBtn').textContent = '▶ Başlat';
+      ciz();
+      bilgileriGuncelle();
+    }
+
+    // Slider olayları
+    ['kutleSlider', 'yuzeySlider', 'kuvvetSlider'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        bilgileriGuncelle();
+        if (!calisiyor) ciz();
+      });
+    });
+
+    // ── KAYDET (PDF demo) ──
+    function kaydet() {
+      alert('📄 Gözlem raporu hazırlanıyor...\n\n(Gerçek uygulamada PDF olarak indirilecek veya öğretmene gönderilecek.)');
+    }
+
+    // İlk çizim
+    bilgileriGuncelle();
+    ciz();
+  </script>
+</body>
+</html>
