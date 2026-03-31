@@ -56,9 +56,19 @@
     .akimsonuc span { font-size:0.8rem; font-weight:400; color:var(--text2); margin-left:4px; }
 
     /* ── Devre Simülatörü ── */
+    /* ── Araç Çubuğu ── */
+    .arac-btn { padding:8px 14px; border-radius:10px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); font-family:inherit; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:5px; }
+    .arac-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+    .arac-btn.aktif { border-color:var(--teal); color:var(--teal); background:rgba(72,201,176,0.1); box-shadow:0 0 8px rgba(72,201,176,0.15); }
+    .arac-btn span { font-size:1rem; }
+    .arac-btn.sil-btn:hover, .arac-btn.sil-btn.aktif { border-color:var(--red); color:var(--red); background:rgba(248,81,73,0.08); }
+    .arac-btn.temizle-btn { border-color:rgba(255,166,87,0.3); color:var(--orange); }
+    .arac-btn.temizle-btn:hover { background:rgba(255,166,87,0.08); }
+
     @media(max-width:600px) {
       .ohm-cards { flex-direction:column; }
-      .devre-kontrol { flex-direction:column; }
+      .arac-btn { padding:6px 10px; font-size:0.72rem; }
+      .arac-btn span { font-size:0.85rem; }
     }
     .devre-tabs { display:flex; gap:8px; }
     .devre-tab { flex:1; padding:10px; border-radius:10px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); font-family:inherit; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.2s; text-align:center; }
@@ -188,64 +198,46 @@
     </div>
   </section>
 
-  <!-- ═══ SECTION 3: İNTERAKTİF DEVRE SİMÜLATÖRÜ ═══ -->
+  <!-- ═══ SECTION 3: SERBEST DEVRE KURMA ALANI ═══ -->
   <section>
-    <div class="section-title"><span>🔌</span> İnteraktif Devre Simülatörü</div>
+    <div class="section-title"><span>🔌</span> Devreni Kendin Kur!</div>
+    <p style="font-size:0.85rem;color:var(--text2);margin-bottom:14px;line-height:1.7;">Aşağıdaki araç çubuğundan bir eleman seç, sonra çalışma alanındaki iki noktaya dokun — eleman oraya yerleşsin. Devreyi tamamla ve anahtarı kapat!</p>
 
     <div class="sim-container">
-      <!-- Devre Türü -->
-      <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
-        <div class="devre-tabs">
-          <button class="devre-tab aktif-seri" id="tabSeri" onclick="devreTuru('seri')">⚡ Seri Devre</button>
-          <button class="devre-tab" id="tabParalel" onclick="devreTuru('paralel')">🔀 Paralel Devre</button>
-        </div>
+      <!-- Araç Çubuğu -->
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <button class="arac-btn aktif" id="aracKablo" onclick="aracSec('kablo')"><span>🔌</span> Kablo</button>
+        <button class="arac-btn" id="aracAmpul" onclick="aracSec('ampul')"><span>💡</span> Ampul</button>
+        <button class="arac-btn" id="aracPil" onclick="aracSec('pil')"><span>🔋</span> Pil</button>
+        <button class="arac-btn" id="aracAnahtar" onclick="aracSec('anahtar')"><span>🔲</span> Anahtar</button>
+        <div style="flex:1;"></div>
+        <button class="arac-btn sil-btn" id="aracSil" onclick="aracSec('sil')"><span>🗑️</span> Sil</button>
+        <button class="arac-btn temizle-btn" onclick="tamamenTemizle()">♻️ Temizle</button>
       </div>
 
       <!-- Canvas -->
       <div class="sim-canvas-wrap">
-        <canvas id="devreCanvas" height="320"></canvas>
-      </div>
-
-      <!-- Kontroller -->
-      <div style="padding:14px 20px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <!-- Ampul sayısı -->
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:0.78rem;color:var(--text2);font-weight:600;">💡 Ampul</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button class="kontrol-btn" onclick="ampulDegistir(-1)">−</button>
-            <span style="font-size:1rem;font-weight:700;color:var(--text);min-width:16px;text-align:center;" id="ampulSayi">2</span>
-            <button class="kontrol-btn" onclick="ampulDegistir(1)">+</button>
-          </div>
-        </div>
-        <!-- Anahtar -->
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="anahtarToggle()">
-          <span style="font-size:0.78rem;color:var(--text2);font-weight:600;">🔲 Anahtar</span>
-          <span id="anahtarDurum" style="font-size:0.82rem;font-weight:700;color:var(--red);">Açık</span>
-        </div>
-        <!-- Pil gerilimi -->
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;grid-column:1/-1;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-size:0.78rem;color:var(--text2);font-weight:600;">🔋 Pil Gerilimi</span>
-            <span id="pilVDeg" style="font-size:1rem;font-weight:700;color:var(--cyan);">6V</span>
-          </div>
-          <input type="range" id="pilV" min="1.5" max="12" step="1.5" value="6" oninput="pilGuncelle()" style="width:100%;">
-          <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text2);margin-top:2px;"><span>1.5V (1 pil)</span><span>12V (8 pil)</span></div>
-        </div>
+        <canvas id="devreCanvas"></canvas>
       </div>
 
       <!-- Durum Paneli -->
-      <div style="padding:14px 20px;border-top:1px solid var(--border);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <span class="durum-badge seri" id="durumBadge">Seri Devre</span>
-          <span id="durumMesaj" style="font-size:0.82rem;font-weight:600;"></span>
+      <div style="padding:14px 16px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+          <span class="durum-badge" id="durumBadge" style="background:rgba(248,81,73,0.15);color:#f85149;border:1px solid rgba(248,81,73,0.3);">Açık Devre</span>
+          <span id="durumMesaj" style="font-size:0.8rem;font-weight:600;color:var(--red);">Devreyi tamamla!</span>
         </div>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
-          <div class="info-card"><div class="label">Pil Gerilimi</div><div class="value" id="infoPilV">6 V</div></div>
-          <div class="info-card"><div class="label">Toplam Direnç</div><div class="value" id="infoRTop">20 Ω</div></div>
-          <div class="info-card"><div class="label">Akım (I)</div><div class="value" id="infoAkim">0.00 A</div></div>
-          <div class="info-card"><div class="label">Ampul Başına V</div><div class="value" id="infoVAmpul">0.0 V</div></div>
+          <div class="info-card"><div class="label">Devre Türü</div><div class="value" id="infoTur" style="color:var(--text2);">—</div></div>
+          <div class="info-card"><div class="label">Pil Gerilimi</div><div class="value" id="infoPilV" style="color:var(--text2);">—</div></div>
+          <div class="info-card"><div class="label">Akım (I)</div><div class="value" id="infoAkim" style="color:var(--text2);">—</div></div>
+          <div class="info-card"><div class="label">Toplam Direnç</div><div class="value" id="infoRTop" style="color:var(--text2);">—</div></div>
         </div>
       </div>
+    </div>
+
+    <div class="note-box" style="margin-top:12px;">
+      <strong>💡 İpucu</strong>
+      Önce pili koy, sonra kablolarla ampullere bağla, en son anahtarı ekle. Devre kapandığında ampuller yanacak! Anahtara tıklayarak açıp kapatabilirsin.
     </div>
   </section>
 
@@ -511,556 +503,407 @@ suCiz();
 
 
 /* ═══════════════════════════════════════════════════
-   SECTION 3: DEVRE SİMÜLATÖRÜ
+   SECTION 3: SERBEST DEVRE KURMA
    ═══════════════════════════════════════════════════ */
 
 var devreCanvas = document.getElementById('devreCanvas');
 var devreCtx = devreCanvas.getContext('2d');
-var devreTip = 'seri';
-var ampulSayisi = 2;
-var anahtarKapali = false;
-var pilGerilim = 6;
-var ampulDirenc = 10; // Her ampulün direnci
 var devreAnimId = null;
-var akimNoktalar = [];
 
-// Akım noktaları oluştur
-function noktaOlustur() {
-  akimNoktalar = [];
-  for (var i = 0; i < 30; i++) {
-    akimNoktalar.push({ pos: Math.random() });
-  }
-}
-noktaOlustur();
+// Grid: 8 sütun × 5 satır
+var COLS = 8, ROWS = 5;
+var nodeX = [], nodeY = [];
+var nodeR = 12; // dokunma alanı
+var elemanlar = []; // {tip, n1, n2, acik} — n1,n2 = node index
+var seciliArac = 'kablo';
+var seciliNode = -1; // ilk tıklanan node
+var akimNoktalar = [];
+var devreAktif = false;
+var devreBilgi = {tur:'',V:0,I:0,R:0};
+
+// Akım noktaları
+for(var i=0;i<24;i++) akimNoktalar.push({pos:Math.random()});
 
 function devreBoyutla() {
   var w = devreCanvas.parentElement.clientWidth;
   devreCanvas.width = w;
-  devreCanvas.height = Math.min(320, Math.max(250, w * 0.45));
-}
-devreBoyutla();
-window.addEventListener('resize', devreBoyutla);
-
-function devreTuru(tip) {
-  devreTip = tip;
-  var tabS = document.getElementById('tabSeri');
-  var tabP = document.getElementById('tabParalel');
-  tabS.className = 'devre-tab' + (tip === 'seri' ? ' aktif-seri' : '');
-  tabP.className = 'devre-tab' + (tip === 'paralel' ? ' aktif-paralel' : '');
-  var badge = document.getElementById('durumBadge');
-  badge.className = 'durum-badge ' + tip;
-  badge.textContent = tip === 'seri' ? 'Seri Devre' : 'Paralel Devre';
-  hesapla();
+  devreCanvas.height = Math.max(280, Math.min(380, w * 0.52));
+  nodeHesapla();
 }
 
-function ampulDegistir(delta) {
-  ampulSayisi = Math.max(1, Math.min(4, ampulSayisi + delta));
-  document.getElementById('ampulSayi').textContent = ampulSayisi;
-  hesapla();
+function nodeHesapla() {
+  var w = devreCanvas.width, h = devreCanvas.height;
+  var padX = 36, padY = 30;
+  var alanW = w - padX*2, alanH = h - padY*2;
+  nodeX = []; nodeY = [];
+  for (var r=0; r<ROWS; r++) {
+    for (var c=0; c<COLS; c++) {
+      nodeX.push(padX + c * alanW/(COLS-1));
+      nodeY.push(padY + r * alanH/(ROWS-1));
+    }
+  }
 }
 
-function anahtarToggle() {
-  anahtarKapali = !anahtarKapali;
-  var durum = document.getElementById('anahtarDurum');
-  if (anahtarKapali) {
-    durum.textContent = 'Kapalı';
-    durum.style.color = 'var(--green)';
+function nodeIdx(r,c) { return r*COLS+c; }
+
+function komsumu(a,b) {
+  var r1=Math.floor(a/COLS), c1=a%COLS;
+  var r2=Math.floor(b/COLS), c2=b%COLS;
+  return (Math.abs(r1-r2)+Math.abs(c1-c2))===1;
+}
+
+function elemanBul(a,b) {
+  for(var i=0;i<elemanlar.length;i++) {
+    var e=elemanlar[i];
+    if((e.n1===a&&e.n2===b)||(e.n1===b&&e.n2===a)) return i;
+  }
+  return -1;
+}
+
+function aracSec(tip) {
+  seciliArac=tip;
+  seciliNode=-1;
+  ['kablo','ampul','pil','anahtar','sil'].forEach(function(t){
+    var el=document.getElementById('arac'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(el) el.classList.toggle('aktif',t===tip);
+  });
+}
+
+function tamamenTemizle() {
+  elemanlar=[];
+  seciliNode=-1;
+  devreAktif=false;
+  durumGuncelle();
+}
+
+// Devre çözümleme — BFS
+function devreCoz() {
+  // Pil bul
+  var pil=null;
+  for(var i=0;i<elemanlar.length;i++) if(elemanlar[i].tip==='pil') { pil=elemanlar[i]; break; }
+  if(!pil) { devreAktif=false; return; }
+
+  // Tüm anahtarlar kapalı mı?
+  var acikAnahtar=false;
+  for(var i=0;i<elemanlar.length;i++) if(elemanlar[i].tip==='anahtar'&&elemanlar[i].acik) acikAnahtar=true;
+  if(acikAnahtar) { devreAktif=false; return; }
+
+  // Adjacency listesi oluştur
+  var adj={};
+  for(var i=0;i<ROWS*COLS;i++) adj[i]=[];
+  for(var i=0;i<elemanlar.length;i++) {
+    var e=elemanlar[i];
+    if(e.tip==='anahtar'&&e.acik) continue; // açık anahtar bağlantı yok
+    adj[e.n1].push(e.n2);
+    adj[e.n2].push(e.n1);
+  }
+
+  // BFS: pil n1'den n2'ye ulaşılabilir mi?
+  var visited={}; visited[pil.n1]=true;
+  var queue=[pil.n1];
+  while(queue.length>0) {
+    var cur=queue.shift();
+    if(cur===pil.n2) { devreAktif=true; break; }
+    for(var j=0;j<adj[cur].length;j++) {
+      var nb=adj[cur][j];
+      if(!visited[nb]) { visited[nb]=true; queue.push(nb); }
+    }
+  }
+  if(!visited[pil.n2]) devreAktif=false;
+
+  if(devreAktif) {
+    // Ampul say
+    var ampulSay=0, anahtarSay=0;
+    for(var i=0;i<elemanlar.length;i++){
+      if(elemanlar[i].tip==='ampul') ampulSay++;
+      if(elemanlar[i].tip==='anahtar') anahtarSay++;
+    }
+    // Basit seri/paralel tespiti: tüm dahili node'ların derecesi
+    var dereceler={};
+    for(var i=0;i<elemanlar.length;i++){
+      var e=elemanlar[i];
+      dereceler[e.n1]=(dereceler[e.n1]||0)+1;
+      dereceler[e.n2]=(dereceler[e.n2]||0)+1;
+    }
+    var maxDerece=0;
+    for(var k in dereceler) if(dereceler[k]>maxDerece) maxDerece=dereceler[k];
+
+    var tur = maxDerece>2 ? 'Paralel' : 'Seri';
+    var V=6, R;
+    if(tur==='Seri') { R=ampulSay*10||10; }
+    else { R = ampulSay>0 ? 10/ampulSay : 10; }
+    var I=V/R;
+    devreBilgi={tur:tur,V:V,I:I,R:R,ampul:ampulSay};
+  }
+}
+
+function durumGuncelle() {
+  devreCoz();
+  var badge=document.getElementById('durumBadge');
+  var mesaj=document.getElementById('durumMesaj');
+  if(devreAktif) {
+    badge.textContent=devreBilgi.tur+' Devre';
+    badge.style.cssText='background:rgba(86,211,100,0.15);color:#56d364;border:1px solid rgba(86,211,100,0.3);display:inline-block;font-size:0.75rem;font-weight:700;padding:3px 12px;border-radius:999px;';
+    mesaj.textContent='✅ Devre tamamlandı — Akım akıyor!';
+    mesaj.style.color='var(--green)';
+    document.getElementById('infoTur').textContent=devreBilgi.tur;
+    document.getElementById('infoTur').style.color=devreBilgi.tur==='Seri'?'var(--cyan)':'var(--purple)';
+    document.getElementById('infoPilV').textContent=devreBilgi.V+' V';
+    document.getElementById('infoPilV').style.color='var(--cyan)';
+    document.getElementById('infoAkim').textContent=devreBilgi.I.toFixed(2)+' A';
+    document.getElementById('infoAkim').style.color='var(--teal)';
+    document.getElementById('infoRTop').textContent=devreBilgi.R.toFixed(1)+' Ω';
+    document.getElementById('infoRTop').style.color='var(--orange)';
   } else {
-    durum.textContent = 'Açık';
-    durum.style.color = 'var(--red)';
-  }
-  hesapla();
-}
-
-function pilGuncelle() {
-  pilGerilim = parseFloat(document.getElementById('pilV').value);
-  document.getElementById('pilVDeg').textContent = pilGerilim + 'V';
-  hesapla();
-}
-
-function hesapla() {
-  var Rtop, I, Vampul;
-  if (devreTip === 'seri') {
-    Rtop = ampulDirenc * ampulSayisi;
-    I = anahtarKapali ? pilGerilim / Rtop : 0;
-    Vampul = anahtarKapali ? pilGerilim / ampulSayisi : 0;
-  } else {
-    // Paralel: 1/Rtop = n * (1/R)
-    Rtop = ampulDirenc / ampulSayisi;
-    I = anahtarKapali ? pilGerilim / Rtop : 0;
-    Vampul = anahtarKapali ? pilGerilim : 0;
-  }
-
-  document.getElementById('infoPilV').textContent = pilGerilim + ' V';
-  document.getElementById('infoRTop').textContent = Rtop.toFixed(1) + ' Ω';
-  document.getElementById('infoAkim').textContent = I.toFixed(2) + ' A';
-  document.getElementById('infoVAmpul').textContent = Vampul.toFixed(1) + ' V';
-
-  var mesaj = document.getElementById('durumMesaj');
-  if (!anahtarKapali) {
-    mesaj.textContent = '⛔ Devre Açık — Akım akmıyor';
-    mesaj.style.color = 'var(--red)';
-  } else {
-    mesaj.textContent = '✅ Devre Kapalı — Akım akıyor';
-    mesaj.style.color = 'var(--green)';
+    badge.textContent='Açık Devre';
+    badge.style.cssText='background:rgba(248,81,73,0.15);color:#f85149;border:1px solid rgba(248,81,73,0.3);display:inline-block;font-size:0.75rem;font-weight:700;padding:3px 12px;border-radius:999px;';
+    mesaj.textContent=elemanlar.length===0?'Devreyi kurmaya başla!':'Devreyi tamamla!';
+    mesaj.style.color='var(--red)';
+    document.getElementById('infoTur').textContent='—';
+    document.getElementById('infoTur').style.color='var(--text2)';
+    document.getElementById('infoPilV').textContent='—';
+    document.getElementById('infoPilV').style.color='var(--text2)';
+    document.getElementById('infoAkim').textContent='—';
+    document.getElementById('infoAkim').style.color='var(--text2)';
+    document.getElementById('infoRTop').textContent='—';
+    document.getElementById('infoRTop').style.color='var(--text2)';
   }
 }
 
-// ── Seri Devre Yolu ──
-function seriYol(w, h, n) {
-  var pad = 40;
-  var topY = 60;
-  var botY = h - 40;
-  var leftX = pad + 40;
-  var rightX = w - pad - 20;
-
-  // Yol: sol-alt → sol-üst → üst boyunca (ampuller burada) → sağ-üst → sağ-alt (anahtar burada) → alt boyunca → sol-alt (pil burada)
-  var yol = [];
-
-  // Sol kenar (alttan üste)
-  yol.push({ x: leftX, y: botY, tip: 'tel' });
-  yol.push({ x: leftX, y: topY, tip: 'tel' });
-
-  // Üst kenar — ampuller eşit aralıklı
-  var ampulAralik = (rightX - leftX) / (n + 1);
-  for (var i = 0; i < n; i++) {
-    var ax = leftX + ampulAralik * (i + 1);
-    yol.push({ x: ax, y: topY, tip: 'ampul', idx: i });
-  }
-
-  // Sağ kenar (üstten alta)
-  yol.push({ x: rightX, y: topY, tip: 'tel' });
-
-  // Anahtar sağ kenarda
-  var anahtarY = (topY + botY) / 2;
-  yol.push({ x: rightX, y: anahtarY, tip: 'anahtar' });
-
-  yol.push({ x: rightX, y: botY, tip: 'tel' });
-
-  // Alt kenar — pil ortada
-  var pilX = (leftX + rightX) / 2;
-  yol.push({ x: pilX, y: botY, tip: 'pil' });
-
-  yol.push({ x: leftX, y: botY, tip: 'tel' });
-
-  return yol;
-}
-
-// ── Paralel Devre Yolu ──
-function paralelYol(w, h, n) {
-  // Paralel devre: pil solda, anahtar sağ altta, ampuller paralel dallar
-  var pad = 40;
-  var topY = 50;
-  var botY = h - 40;
-  var leftX = pad + 30;
-  var rightX = w - pad - 20;
-
-  return { leftX: leftX, rightX: rightX, topY: topY, botY: botY, n: n };
-}
-
-// ── Devre Çiz ──
 function devreCiz() {
-  var w = devreCanvas.width;
-  var h = devreCanvas.height;
-  devreCtx.clearRect(0, 0, w, h);
+  var w=devreCanvas.width, h=devreCanvas.height;
+  var ctx=devreCtx;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#0d1528';
+  ctx.fillRect(0,0,w,h);
 
-  // Arka plan
-  devreCtx.fillStyle = '#0d1528';
-  devreCtx.fillRect(0, 0, w, h);
-
-  var Rtop, I, Vampul, parlaklik;
-  if (devreTip === 'seri') {
-    Rtop = ampulDirenc * ampulSayisi;
-    I = anahtarKapali ? pilGerilim / Rtop : 0;
-    Vampul = anahtarKapali ? pilGerilim / ampulSayisi : 0;
-    parlaklik = Vampul / 12;
-    seriDevreCiz(w, h, I, parlaklik);
-  } else {
-    Rtop = ampulDirenc / ampulSayisi;
-    I = anahtarKapali ? pilGerilim / Rtop : 0;
-    Vampul = anahtarKapali ? pilGerilim : 0;
-    parlaklik = Vampul / 12;
-    paralelDevreCiz(w, h, I, parlaklik);
+  // Grid noktaları
+  for(var i=0;i<nodeX.length;i++){
+    var isSecili = (i===seciliNode);
+    var bagli=false;
+    for(var j=0;j<elemanlar.length;j++){
+      if(elemanlar[j].n1===i||elemanlar[j].n2===i){bagli=true;break;}
+    }
+    ctx.beginPath();
+    ctx.arc(nodeX[i],nodeY[i], isSecili?8:(bagli?5:3.5), 0,Math.PI*2);
+    if(isSecili) {
+      ctx.fillStyle='rgba(72,201,176,0.7)';
+      ctx.fill();
+      ctx.strokeStyle='var(--teal)';ctx.lineWidth=2;ctx.stroke();
+    } else if(bagli) {
+      ctx.fillStyle='rgba(93,173,226,0.5)';
+      ctx.fill();
+    } else {
+      ctx.fillStyle='rgba(120,130,150,0.25)';
+      ctx.fill();
+    }
   }
 
-  // Kablo renk göstergesi
-  devreCtx.font = '9px Poppins, sans-serif';
-  devreCtx.textAlign = 'left';
-  // Kırmızı
-  devreCtx.fillStyle = '#cc3333';
-  devreCtx.fillRect(10, 8, 14, 4);
-  devreCtx.fillStyle = 'rgba(200,200,210,0.5)';
-  devreCtx.fillText('Kırmızı (+)', 28, 13);
-  // Siyah
-  devreCtx.fillStyle = '#555';
-  devreCtx.fillRect(10, 20, 14, 4);
-  devreCtx.fillStyle = 'rgba(200,200,210,0.5)';
-  devreCtx.fillText('Siyah (−)', 28, 25);
+  // Elemanları çiz
+  for(var i=0;i<elemanlar.length;i++){
+    var e=elemanlar[i];
+    var x1=nodeX[e.n1],y1=nodeY[e.n1],x2=nodeX[e.n2],y2=nodeY[e.n2];
+    var mx=(x1+x2)/2, my=(y1+y2)/2;
+    var yatay=Math.abs(y1-y2)<5;
 
-  devreAnimId = requestAnimationFrame(devreCiz);
-}
+    if(e.tip==='kablo'){
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+      ctx.strokeStyle=e.renk||'#cc3333'; ctx.lineWidth=3; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+      ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1; ctx.stroke();
+    }
 
-function telCiz(x1, y1, x2, y2, renk) {
-  devreCtx.beginPath();
-  devreCtx.moveTo(x1, y1);
-  devreCtx.lineTo(x2, y2);
-  devreCtx.strokeStyle = renk || '#cc3333';
-  devreCtx.lineWidth = 3;
-  devreCtx.stroke();
-  // Kablo parlaklığı
-  devreCtx.beginPath();
-  devreCtx.moveTo(x1, y1);
-  devreCtx.lineTo(x2, y2);
-  devreCtx.strokeStyle = 'rgba(255,255,255,0.06)';
-  devreCtx.lineWidth = 1;
-  devreCtx.stroke();
-}
+    if(e.tip==='ampul'){
+      // Kablo
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+      ctx.strokeStyle='#666'; ctx.lineWidth=2; ctx.stroke();
+      // Glow
+      if(devreAktif){
+        var glowR=22+devreBilgi.I*15;
+        var glow=ctx.createRadialGradient(mx,my,0,mx,my,glowR);
+        glow.addColorStop(0,'rgba(255,215,0,'+(0.15+devreBilgi.I*0.2)+')');
+        glow.addColorStop(1,'rgba(255,180,0,0)');
+        ctx.beginPath();ctx.arc(mx,my,glowR,0,Math.PI*2);ctx.fillStyle=glow;ctx.fill();
+      }
+      // Ampul gövdesi
+      var ar=14;
+      ctx.beginPath();ctx.arc(mx,my,ar,0,Math.PI*2);
+      ctx.fillStyle=devreAktif?'rgba(255,215,0,0.25)':'rgba(40,45,55,0.8)';
+      ctx.fill();
+      ctx.strokeStyle=devreAktif?'#ffd700':'#666';
+      ctx.lineWidth=2;ctx.stroke();
+      // X
+      ctx.beginPath();ctx.moveTo(mx-7,my-7);ctx.lineTo(mx+7,my+7);
+      ctx.moveTo(mx+7,my-7);ctx.lineTo(mx-7,my+7);
+      ctx.strokeStyle=devreAktif?'#ffd700':'#888';ctx.lineWidth=1.5;ctx.stroke();
+      // Etiket
+      ctx.fillStyle='rgba(255,166,87,0.7)';ctx.font='8px Poppins,sans-serif';ctx.textAlign='center';
+      ctx.fillText('10Ω',mx,my+ar+12);
+    }
 
-function pilCiz(x, y, V) {
-  // Pil sembolü: kısa çizgi (−) ve uzun çizgi (+)
-  devreCtx.strokeStyle = '#5dade2';
-  devreCtx.lineWidth = 2.5;
+    if(e.tip==='pil'){
+      // Pil sembolü — dikey veya yatay
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+      ctx.strokeStyle='#5dade2'; ctx.lineWidth=2; ctx.stroke();
+      if(yatay){
+        ctx.strokeStyle='#5dade2';ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.moveTo(mx-6,my-14);ctx.lineTo(mx-6,my+14);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(mx+6,my-20);ctx.lineTo(mx+6,my+20);ctx.stroke();
+        ctx.fillStyle='#56d364';ctx.font='bold 9px Poppins,sans-serif';ctx.textAlign='center';
+        ctx.fillText('+',mx+6,my-24);
+        ctx.fillStyle='#f85149';ctx.fillText('−',mx-6,my-18);
+      } else {
+        ctx.strokeStyle='#5dade2';ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.moveTo(mx-14,my-6);ctx.lineTo(mx+14,my-6);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(mx-20,my+6);ctx.lineTo(mx+20,my+6);ctx.stroke();
+        ctx.fillStyle='#56d364';ctx.font='bold 9px Poppins,sans-serif';ctx.textAlign='left';
+        ctx.fillText('+',mx+22,my-3);
+        ctx.fillStyle='#f85149';ctx.textAlign='right';ctx.fillText('−',mx-22,my+10);
+      }
+      ctx.fillStyle='#5dade2';ctx.font='bold 9px Poppins,sans-serif';ctx.textAlign='center';
+      ctx.fillText('6V',mx,my+(yatay?32:28));
+    }
 
-  // Eksi (kısa)
-  devreCtx.beginPath();
-  devreCtx.moveTo(x - 6, y - 12);
-  devreCtx.lineTo(x - 6, y + 12);
-  devreCtx.stroke();
-
-  // Artı (uzun)
-  devreCtx.beginPath();
-  devreCtx.moveTo(x + 6, y - 18);
-  devreCtx.lineTo(x + 6, y + 18);
-  devreCtx.stroke();
-
-  // + ve - işaretleri
-  devreCtx.fillStyle = '#f85149';
-  devreCtx.font = 'bold 10px Poppins, sans-serif';
-  devreCtx.textAlign = 'center';
-  devreCtx.fillText('−', x - 6, y - 16);
-  devreCtx.fillStyle = '#56d364';
-  devreCtx.fillText('+', x + 6, y - 22);
-
-  // Gerilim etiketi
-  devreCtx.fillStyle = '#5dade2';
-  devreCtx.font = 'bold 10px Poppins, sans-serif';
-  devreCtx.fillText(V + 'V', x, y + 30);
-}
-
-function ampulCiz(x, y, parlaklik) {
-  var r = 16;
-
-  // Parıltı efekti
-  if (parlaklik > 0 && anahtarKapali) {
-    var glowR = 20 + parlaklik * 30;
-    var glow = devreCtx.createRadialGradient(x, y, 0, x, y, glowR);
-    glow.addColorStop(0, 'rgba(255,215,0,' + (parlaklik * 0.6) + ')');
-    glow.addColorStop(0.5, 'rgba(255,180,0,' + (parlaklik * 0.2) + ')');
-    glow.addColorStop(1, 'rgba(255,150,0,0)');
-    devreCtx.beginPath();
-    devreCtx.arc(x, y, glowR, 0, Math.PI * 2);
-    devreCtx.fillStyle = glow;
-    devreCtx.fill();
+    if(e.tip==='anahtar'){
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+      ctx.strokeStyle='#444'; ctx.lineWidth=2; ctx.stroke();
+      var kapali=!e.acik;
+      // Noktalar
+      var d1x=mx-(yatay?12:0), d1y=my-(yatay?0:12);
+      var d2x=mx+(yatay?12:0), d2y=my+(yatay?0:12);
+      ctx.fillStyle=kapali?'#56d364':'#f85149';
+      ctx.beginPath();ctx.arc(d1x,d1y,3.5,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(d2x,d2y,3.5,0,Math.PI*2);ctx.fill();
+      if(kapali){
+        ctx.beginPath();ctx.moveTo(d1x,d1y);ctx.lineTo(d2x,d2y);
+        ctx.strokeStyle='#56d364';ctx.lineWidth=2.5;ctx.stroke();
+      } else {
+        ctx.beginPath();ctx.moveTo(d1x,d1y);
+        ctx.lineTo(yatay?d1x+10:d1x+8, yatay?d1y-14:d1y-10);
+        ctx.strokeStyle='#f85149';ctx.lineWidth=2.5;ctx.stroke();
+      }
+      ctx.fillStyle=kapali?'rgba(86,211,100,0.6)':'rgba(248,81,73,0.6)';
+      ctx.font='8px Poppins,sans-serif';ctx.textAlign='center';
+      ctx.fillText(kapali?'Kapalı':'Açık',mx,my+(yatay?20:22));
+    }
   }
-
-  // Daire
-  devreCtx.beginPath();
-  devreCtx.arc(x, y, r, 0, Math.PI * 2);
-  devreCtx.strokeStyle = anahtarKapali && parlaklik > 0 ? '#ffd700' : '#8b949e';
-  devreCtx.lineWidth = 2;
-  devreCtx.stroke();
-
-  if (anahtarKapali && parlaklik > 0) {
-    devreCtx.fillStyle = 'rgba(255,215,0,' + (parlaklik * 0.3) + ')';
-    devreCtx.fill();
-  }
-
-  // X işareti
-  devreCtx.beginPath();
-  devreCtx.moveTo(x - 8, y - 8);
-  devreCtx.lineTo(x + 8, y + 8);
-  devreCtx.moveTo(x + 8, y - 8);
-  devreCtx.lineTo(x - 8, y + 8);
-  devreCtx.strokeStyle = anahtarKapali && parlaklik > 0 ? '#ffd700' : '#8b949e';
-  devreCtx.lineWidth = 1.5;
-  devreCtx.stroke();
-}
-
-function anahtarCiz(x, y, kapali) {
-  devreCtx.strokeStyle = kapali ? '#56d364' : '#f85149';
-  devreCtx.lineWidth = 2.5;
-
-  if (kapali) {
-    // Kapalı — düz çizgi
-    devreCtx.beginPath();
-    devreCtx.moveTo(x, y - 12);
-    devreCtx.lineTo(x, y + 12);
-    devreCtx.stroke();
-
-    // Nokta
-    devreCtx.beginPath();
-    devreCtx.arc(x, y - 12, 3, 0, Math.PI * 2);
-    devreCtx.fillStyle = '#56d364';
-    devreCtx.fill();
-    devreCtx.beginPath();
-    devreCtx.arc(x, y + 12, 3, 0, Math.PI * 2);
-    devreCtx.fill();
-  } else {
-    // Açık — iki nokta ve açık kol
-    devreCtx.beginPath();
-    devreCtx.arc(x, y + 12, 3, 0, Math.PI * 2);
-    devreCtx.fillStyle = '#f85149';
-    devreCtx.fill();
-
-    devreCtx.beginPath();
-    devreCtx.arc(x, y - 12, 3, 0, Math.PI * 2);
-    devreCtx.fill();
-
-    // Açık kol
-    devreCtx.beginPath();
-    devreCtx.moveTo(x, y + 12);
-    devreCtx.lineTo(x + 14, y - 8);
-    devreCtx.strokeStyle = '#f85149';
-    devreCtx.lineWidth = 2.5;
-    devreCtx.stroke();
-  }
-
-  // Etiket
-  devreCtx.fillStyle = kapali ? '#56d364' : '#f85149';
-  devreCtx.font = '9px Poppins, sans-serif';
-  devreCtx.textAlign = 'center';
-  devreCtx.fillText(kapali ? 'Kapalı' : 'Açık', x + 18, y + 4);
-}
-
-// Akım noktası çiz
-function akimNoktaCiz(x, y) {
-  devreCtx.beginPath();
-  devreCtx.arc(x, y, 3, 0, Math.PI * 2);
-  devreCtx.fillStyle = '#ffd700';
-  devreCtx.fill();
-
-  var g = devreCtx.createRadialGradient(x, y, 0, x, y, 8);
-  g.addColorStop(0, 'rgba(255,215,0,0.5)');
-  g.addColorStop(1, 'rgba(255,215,0,0)');
-  devreCtx.beginPath();
-  devreCtx.arc(x, y, 8, 0, Math.PI * 2);
-  devreCtx.fillStyle = g;
-  devreCtx.fill();
-}
-
-// ── Seri Devre Çiz ──
-function seriDevreCiz(w, h, I, parlaklik) {
-  var pad = 50;
-  var topY = 55;
-  var botY = h - 45;
-  var leftX = pad;
-  var rightX = w - pad;
-
-  // Kablolar — Kırmızı: + taraf (pil+ → ampuller), Siyah: − taraf (ampuller → pil−)
-  // Üst kenar (kırmızı — pilin + çıkışından ampullere)
-  telCiz(leftX, topY, rightX, topY, '#cc3333');
-  // Sağ kenar (siyah — ampullerden anahtara)
-  telCiz(rightX, topY, rightX, botY, '#333333');
-  // Alt kenar (siyah — anahtar → pil −)
-  telCiz(rightX, botY, leftX, botY, '#333333');
-  // Sol kenar (kırmızı — pil + → üste)
-  telCiz(leftX, botY, leftX, topY, '#cc3333');
-
-  // Pil — sol kenarda ortada
-  var pilY = (topY + botY) / 2;
-  pilCiz(leftX, pilY, pilGerilim);
-
-  // Ampuller — üst kenarda eşit aralıklı
-  var ampulPozlar = [];
-  var ampulAralik = (rightX - leftX) / (ampulSayisi + 1);
-  for (var i = 0; i < ampulSayisi; i++) {
-    var ax = leftX + ampulAralik * (i + 1);
-    ampulPozlar.push({ x: ax, y: topY });
-    ampulCiz(ax, topY, parlaklik);
-
-    // Direnç etiketi
-    devreCtx.fillStyle = '#ffa657';
-    devreCtx.font = '9px Poppins, sans-serif';
-    devreCtx.textAlign = 'center';
-    devreCtx.fillText(ampulDirenc + 'Ω', ax, topY + 28);
-  }
-
-  // Anahtar — sağ kenarda ortada
-  var anahtarY = (topY + botY) / 2;
-  anahtarCiz(rightX, anahtarY, anahtarKapali);
 
   // Akım animasyonu
-  if (anahtarKapali && I > 0) {
-    var hiz = I * 0.003;
-
-    // Yol: sol-alt → alt → sağ-alt → sağ-üst → üst → sol-üst → sol-alt
-    // Toplam yol uzunluğu hesapla
-    var kenarlar = [
-      { x1: leftX, y1: botY, x2: rightX, y2: botY },   // alt
-      { x1: rightX, y1: botY, x2: rightX, y2: topY },   // sağ
-      { x1: rightX, y1: topY, x2: leftX, y2: topY },    // üst
-      { x1: leftX, y1: topY, x2: leftX, y2: botY }      // sol
-    ];
-
-    var toplamUzunluk = 0;
-    var uzunluklar = [];
-    for (var i = 0; i < kenarlar.length; i++) {
-      var k = kenarlar[i];
-      var uz = Math.sqrt(Math.pow(k.x2 - k.x1, 2) + Math.pow(k.y2 - k.y1, 2));
-      uzunluklar.push(uz);
-      toplamUzunluk += uz;
+  if(devreAktif) {
+    var hiz=devreBilgi.I*0.004;
+    // Basit: tüm kablo/ampul/anahtar elemanları üzerinden noktalar gez
+    var yollar=[];
+    for(var i=0;i<elemanlar.length;i++){
+      var e=elemanlar[i];
+      yollar.push({x1:nodeX[e.n1],y1:nodeY[e.n1],x2:nodeX[e.n2],y2:nodeY[e.n2]});
     }
-
-    for (var i = 0; i < akimNoktalar.length; i++) {
-      var n = akimNoktalar[i];
-      n.pos += hiz;
-      if (n.pos > 1) n.pos -= 1;
-
-      // Pozisyonu gerçek koordinata çevir
-      var mesafe = n.pos * toplamUzunluk;
-      var kalan = mesafe;
-      for (var j = 0; j < kenarlar.length; j++) {
-        if (kalan <= uzunluklar[j]) {
-          var oran = kalan / uzunluklar[j];
-          var k = kenarlar[j];
-          var nx = k.x1 + (k.x2 - k.x1) * oran;
-          var ny = k.y1 + (k.y2 - k.y1) * oran;
-          akimNoktaCiz(nx, ny);
-          break;
-        }
-        kalan -= uzunluklar[j];
+    if(yollar.length>0){
+      for(var i=0;i<akimNoktalar.length;i++){
+        var n=akimNoktalar[i];
+        n.pos+=hiz;
+        if(n.pos>1)n.pos-=1;
+        var segIdx=Math.floor(n.pos*yollar.length)%yollar.length;
+        var segOran=(n.pos*yollar.length)-segIdx;
+        var s=yollar[segIdx];
+        var nx2=s.x1+(s.x2-s.x1)*segOran;
+        var ny2=s.y1+(s.y2-s.y1)*segOran;
+        ctx.beginPath();ctx.arc(nx2,ny2,3,0,Math.PI*2);
+        ctx.fillStyle='#ffd700';ctx.fill();
+        var g2=ctx.createRadialGradient(nx2,ny2,0,nx2,ny2,8);
+        g2.addColorStop(0,'rgba(255,215,0,0.5)');g2.addColorStop(1,'rgba(255,215,0,0)');
+        ctx.beginPath();ctx.arc(nx2,ny2,8,0,Math.PI*2);ctx.fillStyle=g2;ctx.fill();
       }
     }
   }
+
+  // Renk göstergesi
+  ctx.font='8px Poppins,sans-serif';ctx.textAlign='left';
+  ctx.fillStyle='#cc3333';ctx.fillRect(8,6,12,3);
+  ctx.fillStyle='rgba(200,200,210,0.45)';ctx.fillText('Kırmızı (+)',24,10);
+  ctx.fillStyle='#555';ctx.fillRect(8,16,12,3);
+  ctx.fillStyle='rgba(200,200,210,0.45)';ctx.fillText('Siyah (−)',24,20);
+
+  devreAnimId=requestAnimationFrame(devreCiz);
 }
 
-// ── Paralel Devre Çiz ──
-function paralelDevreCiz(w, h, I, parlaklik) {
-  var pad = 50;
-  var topY = 40;
-  var botY = h - 40;
-  var leftX = pad;
-  var rightX = w - pad;
-  var midTopY = topY + 15;
-  var midBotY = botY - 15;
+// Kablo rengi: sırayla kırmızı/siyah
+var kabloDizi=['#cc3333','#333333'];
+var kabloSayac=0;
 
-  // Ana teller — Kırmızı üst (+ hat), Siyah alt (− hat)
-  telCiz(leftX, midTopY, leftX, midBotY, '#cc3333');
-  telCiz(rightX, midTopY, rightX, midBotY, '#333333');
-
-  // Üst yatay bağlantı (kırmızı — + hat)
-  telCiz(leftX, midTopY, rightX, midTopY, '#cc3333');
-  // Alt yatay bağlantı (siyah — − hat)
-  telCiz(leftX, midBotY, rightX, midBotY, '#333333');
-
-  // Pil — sol kenarda
-  var pilY = (midTopY + midBotY) / 2;
-  pilCiz(leftX, pilY, pilGerilim);
-
-  // Anahtar — sağ kenarda
-  var anahtarY = (midTopY + midBotY) / 2;
-  anahtarCiz(rightX, anahtarY, anahtarKapali);
-
-  // Paralel dallar — ampuller yatay olarak dağıtılmış
-  var dalAralik = (midBotY - midTopY) / (ampulSayisi + 1);
-  var dalLeftX = leftX + 60;
-  var dalRightX = rightX - 60;
-  var dalMidX = (dalLeftX + dalRightX) / 2;
-
-  for (var i = 0; i < ampulSayisi; i++) {
-    var dalY = midTopY + dalAralik * (i + 1);
-
-    // Dal teli: kırmızı sol taraf, siyah sağ taraf
-    telCiz(dalLeftX, midTopY, dalLeftX, dalY, '#cc3333');
-    telCiz(dalLeftX, dalY, dalMidX - 20, dalY, '#cc3333');
-    telCiz(dalMidX + 20, dalY, dalRightX, dalY, '#333333');
-    telCiz(dalRightX, dalY, dalRightX, midBotY, '#333333');
-
-    // Ampul
-    ampulCiz(dalMidX, dalY, parlaklik);
-
-    // Direnç etiketi
-    devreCtx.fillStyle = '#ffa657';
-    devreCtx.font = '9px Poppins, sans-serif';
-    devreCtx.textAlign = 'center';
-    devreCtx.fillText(ampulDirenc + 'Ω', dalMidX, dalY + 26);
+// Tıklama/dokunma
+function canvasTiklama(e){
+  e.preventDefault();
+  var rect=devreCanvas.getBoundingClientRect();
+  var touches=e.touches;
+  var cx,cy;
+  if(touches&&touches.length>0){
+    cx=(touches[0].clientX-rect.left)*(devreCanvas.width/rect.width);
+    cy=(touches[0].clientY-rect.top)*(devreCanvas.height/rect.height);
+  } else {
+    cx=(e.clientX-rect.left)*(devreCanvas.width/rect.width);
+    cy=(e.clientY-rect.top)*(devreCanvas.height/rect.height);
   }
 
-  // Sol bağlantı hatları (kırmızı)
-  telCiz(leftX, midTopY, dalLeftX, midTopY, '#cc3333');
-  telCiz(leftX, midBotY, dalLeftX, midBotY, '#333333');
-  // Sağ bağlantı hatları (siyah)
-  telCiz(dalRightX, midTopY, rightX, midTopY, '#cc3333');
-  telCiz(dalRightX, midBotY, rightX, midBotY, '#333333');
-
-  // Akım animasyonu — paralel dallar
-  if (anahtarKapali && I > 0) {
-    var hiz = (I / ampulSayisi) * 0.003;
-
-    // Ana döngü noktaları
-    var anaHiz = I * 0.002;
-
-    for (var i = 0; i < akimNoktalar.length; i++) {
-      var n = akimNoktalar[i];
-      n.pos += hiz;
-      if (n.pos > 1) n.pos -= 1;
-
-      // Her dal için noktalar dağıt
-      var dalIdx = i % ampulSayisi;
-      var dalY = midTopY + dalAralik * (dalIdx + 1);
-
-      // Dal yolu: üst → sol aşağı → sola → ampul → sağa → sağ yukarı → alt
-      var yolUzunluk = 4; // segment sayısı
-      var segment = n.pos * yolUzunluk;
-      var segIdx = Math.floor(segment);
-      var segOran = segment - segIdx;
-      var nx, ny;
-
-      if (segIdx === 0) {
-        // Sol dikey (üst → dal seviyesi)
-        nx = dalLeftX;
-        ny = midTopY + (dalY - midTopY) * segOran;
-      } else if (segIdx === 1) {
-        // Yatay sol → ampul
-        nx = dalLeftX + (dalMidX - dalLeftX) * segOran;
-        ny = dalY;
-      } else if (segIdx === 2) {
-        // Yatay ampul → sağ
-        nx = dalMidX + (dalRightX - dalMidX) * segOran;
-        ny = dalY;
-      } else {
-        // Sağ dikey (dal seviyesi → alt)
-        nx = dalRightX;
-        ny = dalY + (midBotY - dalY) * segOran;
+  // Anahtar tıklama kontrolü
+  for(var i=0;i<elemanlar.length;i++){
+    if(elemanlar[i].tip==='anahtar'){
+      var amx=(nodeX[elemanlar[i].n1]+nodeX[elemanlar[i].n2])/2;
+      var amy=(nodeY[elemanlar[i].n1]+nodeY[elemanlar[i].n2])/2;
+      if(Math.abs(cx-amx)<20&&Math.abs(cy-amy)<20){
+        elemanlar[i].acik=!elemanlar[i].acik;
+        durumGuncelle();
+        return;
       }
-
-      akimNoktaCiz(nx, ny);
     }
   }
+
+  // En yakın node'u bul
+  var enYakin=-1, enMesafe=Infinity;
+  for(var i=0;i<nodeX.length;i++){
+    var dx=cx-nodeX[i], dy=cy-nodeY[i];
+    var mesafe=Math.sqrt(dx*dx+dy*dy);
+    if(mesafe<nodeR*2.5 && mesafe<enMesafe){
+      enYakin=i; enMesafe=mesafe;
+    }
+  }
+  if(enYakin<0) { seciliNode=-1; return; }
+
+  if(seciliArac==='sil'){
+    // Bu node'a bağlı elemanları sil
+    elemanlar=elemanlar.filter(function(e){return e.n1!==enYakin&&e.n2!==enYakin;});
+    durumGuncelle();
+    return;
+  }
+
+  if(seciliNode<0){
+    seciliNode=enYakin;
+  } else {
+    if(enYakin!==seciliNode && komsumu(seciliNode,enYakin)){
+      // Zaten eleman var mı?
+      if(elemanBul(seciliNode,enYakin)>=0){
+        seciliNode=-1;
+        return;
+      }
+      var yeniEleman={tip:seciliArac,n1:seciliNode,n2:enYakin};
+      if(seciliArac==='kablo'){
+        yeniEleman.renk=kabloDizi[kabloSayac%2];
+        kabloSayac++;
+      }
+      if(seciliArac==='anahtar') yeniEleman.acik=true; // başlangıçta açık
+      elemanlar.push(yeniEleman);
+      durumGuncelle();
+    }
+    seciliNode=-1;
+  }
 }
 
-hesapla();
+devreCanvas.addEventListener('click',canvasTiklama);
+devreCanvas.addEventListener('touchstart',canvasTiklama,{passive:false});
+
+devreBoyutla();
+window.addEventListener('resize',function(){devreBoyutla();});
+durumGuncelle();
 devreCiz();
-
-// Canvas tıklama — anahtar toggle
-devreCanvas.addEventListener('click', function(e) {
-  var rect = devreCanvas.getBoundingClientRect();
-  var mx = (e.clientX - rect.left) * (devreCanvas.width / rect.width);
-  var my = (e.clientY - rect.top) * (devreCanvas.height / rect.height);
-
-  var w = devreCanvas.width;
-  var h = devreCanvas.height;
-  var pad = 50;
-  var rightX = w - pad;
-  var topY = devreTip === 'seri' ? 55 : 55;
-  var botY = devreTip === 'seri' ? h - 45 : h - 55;
-  var anahtarY = (topY + botY) / 2;
-
-  // Anahtar bölgesine tıklandı mı?
-  if (Math.abs(mx - rightX) < 30 && Math.abs(my - anahtarY) < 25) {
-    anahtarToggle();
-  }
-});
 
 </script>
 </body>
