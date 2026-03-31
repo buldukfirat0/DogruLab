@@ -122,9 +122,43 @@
       💧 <strong>Düşün:</strong> Evinizdeki musluk. Su deposu ne kadar yüksekse (gerilim), musluktan o kadar güçlü su akar (akım). Ama boruyu daraltırsan (direnç), su akışı yavaşlar. İşte Ohm Yasası tam olarak bunu söylüyor: <strong>V = I × R</strong>
     </div>
 
-    <!-- Su Analojisi Canvas -->
-    <div class="su-canvas-wrap">
-      <canvas id="suCanvas" height="200"></canvas>
+    <!-- İnteraktif Ohm Yasası Paneli -->
+    <div class="sim-container" style="margin-bottom:20px;">
+      <!-- Formül + Slider'lar üstte -->
+      <div style="padding:20px;text-align:center;">
+        <div class="formul-buyuk" style="margin-bottom:16px;">
+          <span class="formul-v">V</span><span class="formul-eq">=</span><span class="formul-i">I</span><span class="formul-x">×</span><span class="formul-r">R</span>
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;">
+          <!-- Gerilim Slider -->
+          <div style="flex:1;min-width:200px;background:var(--bg);border:1px solid rgba(93,173,226,0.25);border-radius:12px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-size:0.78rem;color:var(--text2);">🏔️ Gerilim (Su deposu)</span>
+              <span style="font-size:1.1rem;font-weight:700;color:#5dade2;" id="ohmVDeg">6 V</span>
+            </div>
+            <input type="range" id="ohmV" min="1" max="12" value="6" step="0.5" oninput="ohmGuncelle()" style="width:100%;">
+            <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text2);margin-top:2px;"><span>1V</span><span>12V</span></div>
+          </div>
+          <!-- Direnç Slider -->
+          <div style="flex:1;min-width:200px;background:var(--bg);border:1px solid rgba(255,166,87,0.25);border-radius:12px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-size:0.78rem;color:var(--text2);">⊘ Direnç (Boru genişliği)</span>
+              <span style="font-size:1.1rem;font-weight:700;color:#ffa657;" id="ohmRDeg">10 Ω</span>
+            </div>
+            <input type="range" id="ohmR" min="1" max="100" value="10" oninput="ohmGuncelle()" style="width:100%;">
+            <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text2);margin-top:2px;"><span>1Ω (geniş boru)</span><span>100Ω (dar boru)</span></div>
+          </div>
+        </div>
+        <!-- Hesaplanan Akım -->
+        <div style="margin-top:12px;padding:12px 20px;background:rgba(72,201,176,0.06);border:1px solid rgba(72,201,176,0.2);border-radius:12px;display:inline-block;">
+          <span style="font-size:0.85rem;color:var(--text2);">💧 Hesaplanan Akım:</span>
+          <span style="font-size:1.4rem;font-weight:800;color:#48c9b0;margin-left:8px;" id="ohmIDeg">0.60 A</span>
+        </div>
+      </div>
+      <!-- Su Analojisi Canvas -->
+      <div style="border-top:1px solid var(--border);">
+        <canvas id="suCanvas" height="220"></canvas>
+      </div>
     </div>
 
     <!-- Kavram Kartları -->
@@ -146,36 +180,6 @@
         <div class="ohm-baslik orange">Direnç (R)</div>
         <div class="ohm-aciklama">Borudaki daralma<br>Dar boru suyun akışını zorlaştırır</div>
         <span class="ohm-birim orange">Ohm (Ω)</span>
-      </div>
-    </div>
-
-    <!-- İnteraktif Formül Alanı -->
-    <div class="formul-interaktif">
-      <div class="formul-buyuk">
-        <span class="formul-v">V</span><span class="formul-eq">=</span><span class="formul-i">I</span><span class="formul-x">×</span><span class="formul-r">R</span>
-      </div>
-
-      <div class="slider-grup">
-        <div class="slider-satir">
-          <div class="slider-etiket"><strong>🏔️ Gerilim</strong>Su deposu yüksekliği</div>
-          <input type="range" id="ohmV" min="1" max="12" value="6" oninput="ohmGuncelle()">
-          <div class="slider-deger cyan" id="ohmVDeg">6 V</div>
-        </div>
-        <div class="slider-satir">
-          <div class="slider-etiket"><strong>⊘ Direnç</strong>Boru genişliği</div>
-          <input type="range" id="ohmR" min="1" max="100" value="10" oninput="ohmGuncelle()">
-          <div class="slider-deger orange" id="ohmRDeg">10 Ω</div>
-        </div>
-      </div>
-
-      <div class="akimsonuc">
-        💧 Akım: <span id="ohmIDeg">0.60 A</span>
-      </div>
-
-      <div class="formul-aciklama" style="margin-top:12px;">
-        <span><strong>V</strong> = Gerilim (Volt)</span>
-        <span><strong>I</strong> = Akım (Amper)</span>
-        <span><strong>R</strong> = Direnç (Ohm)</span>
       </div>
     </div>
   </section>
@@ -348,7 +352,7 @@ var suAnimId = null;
 function suBoyutla() {
   var w = suCanvas.parentElement.clientWidth;
   suCanvas.width = w;
-  suCanvas.height = 200;
+  suCanvas.height = 220;
 }
 suBoyutla();
 window.addEventListener('resize', suBoyutla);
