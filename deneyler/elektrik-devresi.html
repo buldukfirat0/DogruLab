@@ -56,7 +56,11 @@
     .akimsonuc span { font-size:0.8rem; font-weight:400; color:var(--text2); margin-left:4px; }
 
     /* ── Devre Simülatörü ── */
-    .devre-tabs { display:flex; gap:8px; margin-bottom:12px; }
+    @media(max-width:600px) {
+      .ohm-cards { flex-direction:column; }
+      .devre-kontrol { flex-direction:column; }
+    }
+    .devre-tabs { display:flex; gap:8px; }
     .devre-tab { flex:1; padding:10px; border-radius:10px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); font-family:inherit; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.2s; text-align:center; }
     .devre-tab.aktif-seri { border-color:var(--cyan); color:var(--cyan); background:rgba(93,173,226,0.1); }
     .devre-tab.aktif-paralel { border-color:var(--purple); color:var(--purple); background:rgba(137,87,229,0.1); }
@@ -189,46 +193,57 @@
     <div class="section-title"><span>🔌</span> İnteraktif Devre Simülatörü</div>
 
     <div class="sim-container">
-      <div class="sim-controls" style="border-top:none; border-bottom:1px solid var(--border);">
-        <!-- Devre Türü Seçimi -->
+      <!-- Devre Türü -->
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
         <div class="devre-tabs">
           <button class="devre-tab aktif-seri" id="tabSeri" onclick="devreTuru('seri')">⚡ Seri Devre</button>
           <button class="devre-tab" id="tabParalel" onclick="devreTuru('paralel')">🔀 Paralel Devre</button>
-        </div>
-
-        <!-- Kontroller -->
-        <div class="devre-kontrol">
-          <div class="kontrol-grup">
-            <span class="kontrol-label">Ampul:</span>
-            <button class="kontrol-btn" onclick="ampulDegistir(-1)">−</button>
-            <span class="kontrol-deger" id="ampulSayi">2</span>
-            <button class="kontrol-btn" onclick="ampulDegistir(1)">+</button>
-          </div>
-          <button class="anahtar-btn acik" id="anahtarBtn" onclick="anahtarToggle()">🔓 Anahtar: Açık</button>
-          <div class="kontrol-grup" style="flex:1; min-width:180px;">
-            <span class="kontrol-label">Pil:</span>
-            <input type="range" id="pilV" min="1.5" max="12" step="1.5" value="6" oninput="pilGuncelle()" style="flex:1;">
-            <span class="kontrol-deger" id="pilVDeg" style="color:var(--cyan);">6V</span>
-          </div>
         </div>
       </div>
 
       <!-- Canvas -->
       <div class="sim-canvas-wrap">
-        <canvas id="devreCanvas" height="280"></canvas>
+        <canvas id="devreCanvas" height="320"></canvas>
+      </div>
+
+      <!-- Kontroller -->
+      <div style="padding:14px 20px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <!-- Ampul sayısı -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:0.78rem;color:var(--text2);font-weight:600;">💡 Ampul</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="kontrol-btn" onclick="ampulDegistir(-1)">−</button>
+            <span style="font-size:1rem;font-weight:700;color:var(--text);min-width:16px;text-align:center;" id="ampulSayi">2</span>
+            <button class="kontrol-btn" onclick="ampulDegistir(1)">+</button>
+          </div>
+        </div>
+        <!-- Anahtar -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="anahtarToggle()">
+          <span style="font-size:0.78rem;color:var(--text2);font-weight:600;">🔲 Anahtar</span>
+          <span id="anahtarDurum" style="font-size:0.82rem;font-weight:700;color:var(--red);">Açık</span>
+        </div>
+        <!-- Pil gerilimi -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;grid-column:1/-1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:0.78rem;color:var(--text2);font-weight:600;">🔋 Pil Gerilimi</span>
+            <span id="pilVDeg" style="font-size:1rem;font-weight:700;color:var(--cyan);">6V</span>
+          </div>
+          <input type="range" id="pilV" min="1.5" max="12" step="1.5" value="6" oninput="pilGuncelle()" style="width:100%;">
+          <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text2);margin-top:2px;"><span>1.5V (1 pil)</span><span>12V (8 pil)</span></div>
+        </div>
       </div>
 
       <!-- Durum Paneli -->
-      <div class="sim-controls">
-        <div class="devre-durum">
+      <div style="padding:14px 20px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
           <span class="durum-badge seri" id="durumBadge">Seri Devre</span>
-          <span id="durumMesaj" style="font-size:0.8rem; color:var(--red); margin-left:8px;"></span>
+          <span id="durumMesaj" style="font-size:0.82rem;font-weight:600;"></span>
         </div>
-        <div class="sim-info-row">
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
           <div class="info-card"><div class="label">Pil Gerilimi</div><div class="value" id="infoPilV">6 V</div></div>
           <div class="info-card"><div class="label">Toplam Direnç</div><div class="value" id="infoRTop">20 Ω</div></div>
-          <div class="info-card"><div class="label">Akım</div><div class="value" id="infoAkim">0.30 A</div></div>
-          <div class="info-card"><div class="label">Ampul Başına Gerilim</div><div class="value" id="infoVAmpul">3.0 V</div></div>
+          <div class="info-card"><div class="label">Akım (I)</div><div class="value" id="infoAkim">0.00 A</div></div>
+          <div class="info-card"><div class="label">Ampul Başına V</div><div class="value" id="infoVAmpul">0.0 V</div></div>
         </div>
       </div>
     </div>
@@ -521,7 +536,7 @@ noktaOlustur();
 function devreBoyutla() {
   var w = devreCanvas.parentElement.clientWidth;
   devreCanvas.width = w;
-  devreCanvas.height = 280;
+  devreCanvas.height = Math.min(320, Math.max(250, w * 0.45));
 }
 devreBoyutla();
 window.addEventListener('resize', devreBoyutla);
@@ -546,13 +561,13 @@ function ampulDegistir(delta) {
 
 function anahtarToggle() {
   anahtarKapali = !anahtarKapali;
-  var btn = document.getElementById('anahtarBtn');
+  var durum = document.getElementById('anahtarDurum');
   if (anahtarKapali) {
-    btn.className = 'anahtar-btn kapali';
-    btn.textContent = '🔒 Anahtar: Kapalı';
+    durum.textContent = 'Kapalı';
+    durum.style.color = 'var(--green)';
   } else {
-    btn.className = 'anahtar-btn acik';
-    btn.textContent = '🔓 Anahtar: Açık';
+    durum.textContent = 'Açık';
+    durum.style.color = 'var(--red)';
   }
   hesapla();
 }
@@ -668,15 +683,36 @@ function devreCiz() {
     paralelDevreCiz(w, h, I, parlaklik);
   }
 
+  // Kablo renk göstergesi
+  devreCtx.font = '9px Poppins, sans-serif';
+  devreCtx.textAlign = 'left';
+  // Kırmızı
+  devreCtx.fillStyle = '#cc3333';
+  devreCtx.fillRect(10, 8, 14, 4);
+  devreCtx.fillStyle = 'rgba(200,200,210,0.5)';
+  devreCtx.fillText('Kırmızı (+)', 28, 13);
+  // Siyah
+  devreCtx.fillStyle = '#555';
+  devreCtx.fillRect(10, 20, 14, 4);
+  devreCtx.fillStyle = 'rgba(200,200,210,0.5)';
+  devreCtx.fillText('Siyah (−)', 28, 25);
+
   devreAnimId = requestAnimationFrame(devreCiz);
 }
 
-function telCiz(x1, y1, x2, y2) {
+function telCiz(x1, y1, x2, y2, renk) {
   devreCtx.beginPath();
   devreCtx.moveTo(x1, y1);
   devreCtx.lineTo(x2, y2);
-  devreCtx.strokeStyle = '#56d364';
-  devreCtx.lineWidth = 2.5;
+  devreCtx.strokeStyle = renk || '#cc3333';
+  devreCtx.lineWidth = 3;
+  devreCtx.stroke();
+  // Kablo parlaklığı
+  devreCtx.beginPath();
+  devreCtx.moveTo(x1, y1);
+  devreCtx.lineTo(x2, y2);
+  devreCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+  devreCtx.lineWidth = 1;
   devreCtx.stroke();
 }
 
@@ -820,15 +856,15 @@ function seriDevreCiz(w, h, I, parlaklik) {
   var leftX = pad;
   var rightX = w - pad;
 
-  // Tel çiz — dikdörtgen döngü
-  // Alt kenar
-  telCiz(leftX, botY, rightX, botY);
-  // Sağ kenar
-  telCiz(rightX, botY, rightX, topY);
-  // Üst kenar
-  telCiz(rightX, topY, leftX, topY);
-  // Sol kenar
-  telCiz(leftX, topY, leftX, botY);
+  // Kablolar — Kırmızı: + taraf (pil+ → ampuller), Siyah: − taraf (ampuller → pil−)
+  // Üst kenar (kırmızı — pilin + çıkışından ampullere)
+  telCiz(leftX, topY, rightX, topY, '#cc3333');
+  // Sağ kenar (siyah — ampullerden anahtara)
+  telCiz(rightX, topY, rightX, botY, '#333333');
+  // Alt kenar (siyah — anahtar → pil −)
+  telCiz(rightX, botY, leftX, botY, '#333333');
+  // Sol kenar (kırmızı — pil + → üste)
+  telCiz(leftX, botY, leftX, topY, '#cc3333');
 
   // Pil — sol kenarda ortada
   var pilY = (topY + botY) / 2;
@@ -908,14 +944,14 @@ function paralelDevreCiz(w, h, I, parlaklik) {
   var midTopY = topY + 15;
   var midBotY = botY - 15;
 
-  // Ana teller — sol ve sağ dikey hatlar
-  telCiz(leftX, midTopY, leftX, midBotY);
-  telCiz(rightX, midTopY, rightX, midBotY);
+  // Ana teller — Kırmızı üst (+ hat), Siyah alt (− hat)
+  telCiz(leftX, midTopY, leftX, midBotY, '#cc3333');
+  telCiz(rightX, midTopY, rightX, midBotY, '#333333');
 
-  // Üst yatay bağlantı (sol → sağ)
-  telCiz(leftX, midTopY, rightX, midTopY);
-  // Alt yatay bağlantı (sol → sağ)
-  telCiz(leftX, midBotY, rightX, midBotY);
+  // Üst yatay bağlantı (kırmızı — + hat)
+  telCiz(leftX, midTopY, rightX, midTopY, '#cc3333');
+  // Alt yatay bağlantı (siyah — − hat)
+  telCiz(leftX, midBotY, rightX, midBotY, '#333333');
 
   // Pil — sol kenarda
   var pilY = (midTopY + midBotY) / 2;
@@ -934,11 +970,11 @@ function paralelDevreCiz(w, h, I, parlaklik) {
   for (var i = 0; i < ampulSayisi; i++) {
     var dalY = midTopY + dalAralik * (i + 1);
 
-    // Dal teli: üst hattan ayrıl → ampul → alt hatta birleş
-    telCiz(dalLeftX, midTopY, dalLeftX, dalY);
-    telCiz(dalLeftX, dalY, dalMidX - 20, dalY);
-    telCiz(dalMidX + 20, dalY, dalRightX, dalY);
-    telCiz(dalRightX, dalY, dalRightX, midBotY);
+    // Dal teli: kırmızı sol taraf, siyah sağ taraf
+    telCiz(dalLeftX, midTopY, dalLeftX, dalY, '#cc3333');
+    telCiz(dalLeftX, dalY, dalMidX - 20, dalY, '#cc3333');
+    telCiz(dalMidX + 20, dalY, dalRightX, dalY, '#333333');
+    telCiz(dalRightX, dalY, dalRightX, midBotY, '#333333');
 
     // Ampul
     ampulCiz(dalMidX, dalY, parlaklik);
@@ -950,12 +986,12 @@ function paralelDevreCiz(w, h, I, parlaklik) {
     devreCtx.fillText(ampulDirenc + 'Ω', dalMidX, dalY + 26);
   }
 
-  // Sol bağlantı hatları (üst ve alt bara → dal başlangıçları)
-  telCiz(leftX, midTopY, dalLeftX, midTopY);
-  telCiz(leftX, midBotY, dalLeftX, midBotY);
-  // Sağ bağlantı hatları
-  telCiz(dalRightX, midTopY, rightX, midTopY);
-  telCiz(dalRightX, midBotY, rightX, midBotY);
+  // Sol bağlantı hatları (kırmızı)
+  telCiz(leftX, midTopY, dalLeftX, midTopY, '#cc3333');
+  telCiz(leftX, midBotY, dalLeftX, midBotY, '#333333');
+  // Sağ bağlantı hatları (siyah)
+  telCiz(dalRightX, midTopY, rightX, midTopY, '#cc3333');
+  telCiz(dalRightX, midBotY, rightX, midBotY, '#333333');
 
   // Akım animasyonu — paralel dallar
   if (anahtarKapali && I > 0) {
